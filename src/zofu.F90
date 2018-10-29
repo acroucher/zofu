@@ -36,6 +36,7 @@ module zofu
    contains
      procedure, public :: init => unit_test_init
      procedure, public :: run => unit_test_run
+     procedure, public :: summary => unit_test_summary
      procedure :: pass_assertion => unit_test_pass_assertion
      procedure :: fail_assertion => unit_test_fail_assertion
      procedure :: unit_test_equal_real_tol
@@ -146,6 +147,21 @@ contains
     self%num_cases = self%num_cases + 1
     
   end subroutine unit_test_run
+
+!------------------------------------------------------------------------
+
+  subroutine unit_test_summary(self)
+    !! Writes YAML summary of test statistics to stdout.
+
+    class(unit_test_type), intent(in out) :: self
+
+    write (*,'(a, i0, a, a, i0, a, a, i0, a, a, i0, a)') &
+         '{"cases": ', self%num_cases, ',', &
+         '"assertions": ', self%num_assertions, ',', &
+         '"passed": ', self%num_passed_assertions, ',', &
+         '"failed": ', self%num_failed_assertions, '}'
+
+  end subroutine unit_test_summary
 
 !------------------------------------------------------------------------
 

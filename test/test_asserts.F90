@@ -160,6 +160,8 @@ program test_asserts
   call test%run(test_str_array_2_fail)
   call check(test, last, 1, 1, 0, 1, OK)
 
+  call test%summary()
+
   if (.not. OK) stop 1
 
 contains
