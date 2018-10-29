@@ -4,144 +4,161 @@ program test_asserts
 
   use zofu
   implicit none
+  type counts_type
+     integer :: cases = 0
+     integer :: assertions = 0
+     integer :: passed = 0
+     integer :: failed = 0
+  end type counts_type
   type(unit_test_type) :: test
+  type(counts_type) :: last
   logical :: OK
   integer, parameter :: dp = kind(0.d0) !! double precision kind
 
   call test%init()
   OK = .true.
 
+  ! Logical tests:
+
   call test%run(assert_true)
-  call check(test, 1, 1, 1, 0, OK)
+  call check(test, last, 1, 1, 1, 0, OK)
 
   call test%run(assert_false)
-  call check(test, 2, 2, 1, 1, OK)
+  call check(test, last, 1, 1, 0, 1, OK)
 
   call test%run(assert_true_true)
-  call check(test, 3, 3, 2, 1, OK)
+  call check(test, last, 1, 1, 1, 0, OK)
 
   call test%run(assert_false_false)
-  call check(test, 4, 4, 3, 1, OK)
+  call check(test, last, 1, 1, 1, 0, OK)
 
   call test%run(assert_true_false)
-  call check(test, 5, 5, 3, 2, OK)
+  call check(test, last, 1, 1, 0, 1, OK)
 
   call test%run(test_logical_array_1_pass)
-  call check(test, 6, 6, 4, 2, OK)
+  call check(test, last, 1, 1, 1, 0, OK)
 
   call test%run(test_logical_array_1_fail)
-  call check(test, 7, 7, 4, 3, OK)
-
-  call test%run(test_integer_pass)
-  call check(test, 8, 8, 5, 3, OK)
-
-  call test%run(test_integer_fail)
-  call check(test, 9, 9, 5, 4, OK)
-
-  call test%run(test_integer_array_1_pass)
-  call check(test, 10, 10, 6, 4, OK)
-
-  call test%run(test_integer_array_1_fail)
-  call check(test, 11, 11, 6, 5, OK)
-
-  call test%run(test_real_pass)
-  call check(test, 12, 12, 7, 5, OK)
-
-  call test%run(test_real_fail)
-  call check(test, 13, 13, 7, 6, OK)
-
-  call test%run(test_real_both_zero)
-  call check(test, 14, 14, 8, 6, OK)
-
-  call test%run(test_real_large_difference_fail)
-  call check(test, 15, 15, 8, 7, OK)
-
-  call test%run(test_real_small_difference_pass)
-  call check(test, 16, 16, 9, 7, OK)
-
-  call test%run(test_real_small_difference_fail)
-  call check(test, 17, 17, 9, 8, OK)
-
-  call test%run(test_real_small_difference_tol_pass)
-  call check(test, 18, 18, 10, 8, OK)
-
-  call test%run(test_real_array_1_pass)
-  call check(test, 19, 19, 11, 8, OK)
-
-  call test%run(test_real_array_1_fail)
-  call check(test, 20, 20, 11, 9, OK)
-
-  call test%run(test_double_pass)
-  call check(test, 21, 21, 12, 9, OK)
-
-  call test%run(test_double_fail)
-  call check(test, 22, 22, 12, 10, OK)
-
-  call test%run(test_double_both_zero)
-  call check(test, 23, 23, 13, 10, OK)
-
-  call test%run(test_double_large_difference_fail)
-  call check(test, 24, 24, 13, 11, OK)
-
-  call test%run(test_double_small_difference_pass)
-  call check(test, 25, 25, 14, 11, OK)
-
-  call test%run(test_double_small_difference_fail)
-  call check(test, 26, 26, 14, 12, OK)
-
-  call test%run(test_double_small_difference_tol_pass)
-  call check(test, 27, 27, 15, 12, OK)
-
-  call test%run(test_double_array_pass)
-  call check(test, 28, 28, 16, 12, OK)
-
-  call test%run(test_double_array_fail)
-  call check(test, 29, 29, 16, 13, OK)
+  call check(test, last, 1, 1, 0, 1, OK)
 
   call test%run(test_logical_array_2_pass)
-  call check(test, 30, 30, 17, 13, OK)
-  
+  call check(test, last, 1, 1, 1, 0, OK)
+
   call test%run(test_logical_array_2_fail)
-  call check(test, 31, 31, 17, 14, OK)
+  call check(test, last, 1, 1, 0, 1, OK)
+
+  ! Integer tests:
+
+  call test%run(test_integer_pass)
+  call check(test, last, 1, 1, 1, 0, OK)
+
+  call test%run(test_integer_fail)
+  call check(test, last, 1, 1, 0, 1, OK)
+
+  call test%run(test_integer_array_1_pass)
+  call check(test, last, 1, 1, 1, 0, OK)
+
+  call test%run(test_integer_array_1_fail)
+  call check(test, last, 1, 1, 0, 1, OK)
 
   call test%run(test_integer_array_2_pass)
-  call check(test, 32, 32, 18, 14, OK)
+  call check(test, last, 1, 1, 1, 0, OK)
 
   call test%run(test_integer_array_2_fail)
-  call check(test, 33, 33, 18, 15, OK)
+  call check(test, last, 1, 1, 0, 1, OK)
+
+  ! Real tests:
+
+  call test%run(test_real_pass)
+  call check(test, last, 1, 1, 1, 0, OK)
+
+  call test%run(test_real_fail)
+  call check(test, last, 1, 1, 0, 1, OK)
+
+  call test%run(test_real_both_zero)
+  call check(test, last, 1, 1, 1, 0, OK)
+
+  call test%run(test_real_large_difference_fail)
+  call check(test, last, 1, 1, 0, 1, OK)
+
+  call test%run(test_real_small_difference_pass)
+  call check(test, last, 1, 1, 1, 0, OK)
+
+  call test%run(test_real_small_difference_fail)
+  call check(test, last, 1, 1, 0, 1, OK)
+
+  call test%run(test_real_small_difference_tol_pass)
+  call check(test, last, 1, 1, 1, 0, OK)
+
+  call test%run(test_real_array_1_pass)
+  call check(test, last, 1, 1, 1, 0, OK)
+
+  call test%run(test_real_array_1_fail)
+  call check(test, last, 1, 1, 0, 1, OK)
 
   call test%run(test_real_array_2_pass)
-  call check(test, 34, 34, 19, 15, OK)
+  call check(test, last, 1, 1, 1, 0, OK)
 
   call test%run(test_real_array_2_fail)
-  call check(test, 35, 35, 19, 16, OK)
+  call check(test, last, 1, 1, 0, 1, OK)
+
+  ! Double precision tests:
+
+  call test%run(test_double_pass)
+  call check(test, last, 1, 1, 1, 0, OK)
+
+  call test%run(test_double_fail)
+  call check(test, last, 1, 1, 0, 1, OK)
+
+  call test%run(test_double_both_zero)
+  call check(test, last, 1, 1, 1, 0, OK)
+
+  call test%run(test_double_large_difference_fail)
+  call check(test, last, 1, 1, 0, 1, OK)
+
+  call test%run(test_double_small_difference_pass)
+  call check(test, last, 1, 1, 1, 0, OK)
+
+  call test%run(test_double_small_difference_fail)
+  call check(test, last, 1, 1, 0, 1, OK)
+
+  call test%run(test_double_small_difference_tol_pass)
+  call check(test, last, 1, 1, 1, 0, OK)
+
+  call test%run(test_double_array_pass)
+  call check(test, last, 1, 1, 1, 0, OK)
+
+  call test%run(test_double_array_fail)
+  call check(test, last, 1, 1, 0, 1, OK)
 
   call test%run(test_double_array_2_pass)
-  call check(test, 36, 36, 20, 16, OK)
+  call check(test, last, 1, 1, 1, 0, OK)
 
   call test%run(test_double_array_2_fail)
-  call check(test, 37, 37, 20, 17, OK)
+  call check(test, last, 1, 1, 0, 1, OK)
+
+  ! String tests:
 
   call test%run(test_str_pass)
-  call check(test, 38, 38, 21, 17, OK)
+  call check(test, last, 1, 1, 1, 0, OK)
 
   call test%run(test_str_pass_unequal_lengths)
-  call check(test, 39, 39, 22, 17, OK)
+  call check(test, last, 1, 1, 1, 0, OK)
 
   call test%run(test_str_pass_left_pad)
-  call check(test, 40, 40, 23, 17, OK)
+  call check(test, last, 1, 1, 1, 0, OK)
 
   call test%run(test_str_array_1_pass)
-  call check(test, 41, 41, 24, 17, OK)
+  call check(test, last, 1, 1, 1, 0, OK)
 
   call test%run(test_str_array_1_fail)
-  call check(test, 42, 42, 24, 18, OK)
+  call check(test, last, 1, 1, 0, 1, OK)
 
   call test%run(test_str_array_2_pass)
-  call check(test, 43, 43, 25, 18, OK)
+  call check(test, last, 1, 1, 1, 0, OK)
 
   call test%run(test_str_array_2_fail)
-  call check(test, 44, 44, 25, 19, OK)
+  call check(test, last, 1, 1, 0, 1, OK)
 
   if (.not. OK) stop 1
 
@@ -149,19 +166,26 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine check(test, expected_num_cases, expected_num_assertions, &
-       expected_num_passed, expected_num_failed, OK)
+  subroutine check(test, last, cases, assertions, passed, failed, OK)
+    !! Checks total numbers of cases, assertions, passes and fails
+    !! against expected values, given the numbers expected for the
+    !! last case run.
 
     type(unit_test_type), intent(in) :: test
-    integer, intent(in) :: expected_num_cases, expected_num_assertions, &
-         expected_num_passed, expected_num_failed
+    type(counts_type), intent(in out) :: last
+    integer, intent(in) :: cases, assertions, passed, failed
     logical, intent(in out) :: OK
 
     OK = ( OK .and. &
-         (test%num_cases == expected_num_cases) .and. &
-         (test%num_assertions == expected_num_assertions) .and. &
-         (test%num_passed_assertions == expected_num_passed) .and. &
-         (test%num_failed_assertions == expected_num_failed))
+         (test%num_cases == last%cases + cases) .and. &
+         (test%num_assertions == last%assertions + assertions) .and. &
+         (test%num_passed_assertions == last%passed + passed) .and. &
+         (test%num_failed_assertions == last%failed + failed))
+
+    last%cases = test%num_cases
+    last%assertions = test%num_assertions
+    last%passed = test%num_passed_assertions
+    last%failed = test%num_failed_assertions
 
   end subroutine check
 
