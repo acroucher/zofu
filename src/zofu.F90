@@ -66,6 +66,9 @@ module zofu
      procedure :: unit_test_assert_equal_double_array_1
      procedure :: unit_test_assert_equal_double_array_2_tol
      procedure :: unit_test_assert_equal_double_array_2
+     procedure :: unit_test_assert_equal_string
+     procedure :: unit_test_assert_equal_string_array_1
+     procedure :: unit_test_assert_equal_string_array_2
      generic, public :: assert => &
           unit_test_assert_true, &
           unit_test_assert_equal_logical, &
@@ -85,7 +88,10 @@ module zofu
           unit_test_assert_equal_double_array_1_tol, &
           unit_test_assert_equal_double_array_1, &
           unit_test_assert_equal_double_array_2_tol, &
-          unit_test_assert_equal_double_array_2
+          unit_test_assert_equal_double_array_2, &
+          unit_test_assert_equal_string, &
+          unit_test_assert_equal_string_array_1, &
+          unit_test_assert_equal_string_array_2
   end type unit_test_type
 
   abstract interface
@@ -96,6 +102,17 @@ module zofu
   end interface
 
 contains
+
+!------------------------------------------------------------------------
+
+  logical elemental function str_equal(a, b)
+    !! Tests if two character strings are equal.
+
+    character(len = *), intent(in) :: a, b
+
+    str_equal = (trim(adjustl(a)) == trim(adjustl(b)))
+
+  end function str_equal
 
 !------------------------------------------------------------------------
 
@@ -222,7 +239,9 @@ contains
     equal = self%equal_tol(a, b, dble(self%default_relative_tol))
 
   end function unit_test_equal_double
-  
+
+!------------------------------------------------------------------------
+! Logical assertions:
 !------------------------------------------------------------------------
 
   subroutine unit_test_assert_true(self, condition)
@@ -276,6 +295,8 @@ contains
   end subroutine unit_test_assert_equal_logical_array_2
 
 !------------------------------------------------------------------------
+! Integer assertions:
+!------------------------------------------------------------------------
 
   subroutine unit_test_assert_equal_integer(self, a, b)
     !! Assert specified integers are equal.
@@ -311,6 +332,8 @@ contains
 
   end subroutine unit_test_assert_equal_integer_array_2
 
+!------------------------------------------------------------------------
+! Real assertions:
 !------------------------------------------------------------------------
 
   subroutine unit_test_assert_equal_real_tol(self, a, b, tol)
@@ -393,6 +416,8 @@ contains
   end subroutine unit_test_assert_equal_real_array_2
 
 !------------------------------------------------------------------------
+! Double precision assertions:
+!------------------------------------------------------------------------
 
   subroutine unit_test_assert_equal_double_tol(self, a, b, tol)
     !! Assert specified double precision scalars are equal to within
@@ -474,6 +499,43 @@ contains
          dble(self%default_relative_tol))))
 
   end subroutine unit_test_assert_equal_double_array_2
+
+!------------------------------------------------------------------------
+! String assertions:
+!------------------------------------------------------------------------
+
+  subroutine unit_test_assert_equal_string(self, a, b)
+    !! Assert specified strings are equal.
+    class(unit_test_type), intent(in out) :: self
+    character(len = *), intent(in) :: a, b
+
+    call self%assert(str_equal(a, b))
+
+  end subroutine unit_test_assert_equal_string
+
+!------------------------------------------------------------------------
+
+  subroutine unit_test_assert_equal_string_array_1(self, a, b)
+    !! Assert specified rank-1 string arrays are equal.
+
+    class(unit_test_type), intent(in out) :: self
+    character(len = *), intent(in) :: a(:), b(:)
+
+    call self%assert(all(str_equal(a, b)))
+
+  end subroutine unit_test_assert_equal_string_array_1
+
+!------------------------------------------------------------------------
+
+  subroutine unit_test_assert_equal_string_array_2(self, a, b)
+    !! Assert specified rank-2 string arrays are equal.
+
+    class(unit_test_type), intent(in out) :: self
+    character(len = *), intent(in) :: a(:,:), b(:,:)
+
+    call self%assert(all(str_equal(a, b)))
+
+  end subroutine unit_test_assert_equal_string_array_2
 
 !------------------------------------------------------------------------
 

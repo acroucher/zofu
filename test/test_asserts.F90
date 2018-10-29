@@ -122,6 +122,27 @@ program test_asserts
   call test%run(test_double_array_2_fail)
   call check(test, 37, 37, 20, 17, OK)
 
+  call test%run(test_str_pass)
+  call check(test, 38, 38, 21, 17, OK)
+
+  call test%run(test_str_pass_unequal_lengths)
+  call check(test, 39, 39, 22, 17, OK)
+
+  call test%run(test_str_pass_left_pad)
+  call check(test, 40, 40, 23, 17, OK)
+
+  call test%run(test_str_array_1_pass)
+  call check(test, 41, 41, 24, 17, OK)
+
+  call test%run(test_str_array_1_fail)
+  call check(test, 42, 42, 24, 18, OK)
+
+  call test%run(test_str_array_2_pass)
+  call check(test, 43, 43, 25, 18, OK)
+
+  call test%run(test_str_array_2_fail)
+  call check(test, 44, 44, 25, 19, OK)
+
   if (.not. OK) stop 1
 
 contains
@@ -145,8 +166,8 @@ contains
   end subroutine check
 
 !------------------------------------------------------------------------
-
-  ! Logical tests
+! Logical tests
+!------------------------------------------------------------------------
 
   subroutine assert_true(test)
     type(unit_test_type), intent(in out) :: test
@@ -199,8 +220,8 @@ contains
   end subroutine test_logical_array_2_fail
 
 !------------------------------------------------------------------------
-
-  ! Integer tests
+! Integer tests
+!------------------------------------------------------------------------
 
   subroutine test_integer_pass(test)
     type(unit_test_type), intent(in out) :: test
@@ -237,8 +258,8 @@ contains
   end subroutine test_integer_array_2_fail
   
 !------------------------------------------------------------------------
-
-  ! Real tests
+! Real tests
+!------------------------------------------------------------------------
 
   subroutine test_real_pass(test)
     type(unit_test_type), intent(in out) :: test
@@ -300,8 +321,8 @@ contains
   end subroutine test_real_array_2_fail
 
 !------------------------------------------------------------------------
-
-  ! Double tests
+! Double tests
+!------------------------------------------------------------------------
 
   subroutine test_double_pass(test)
     type(unit_test_type), intent(in out) :: test
@@ -364,6 +385,49 @@ contains
          reshape([2.718_dp, -3.141_dp, 1.618_dp, 1._dp, 1._dp, -0.5_dp], &
          [2, 3]))
   end subroutine test_double_array_2_fail
+
+!------------------------------------------------------------------------
+! String tests
+!------------------------------------------------------------------------
+
+  subroutine test_str_pass(test)
+    type(unit_test_type), intent(in out) :: test
+    call test%assert("foo", "foo")
+  end subroutine test_str_pass
+
+  subroutine test_str_pass_unequal_lengths(test)
+    type(unit_test_type), intent(in out) :: test
+    call test%assert("foo", "foo   ")
+  end subroutine test_str_pass_unequal_lengths
+
+  subroutine test_str_pass_left_pad(test)
+    type(unit_test_type), intent(in out) :: test
+    call test%assert("foo", "  foo")
+  end subroutine test_str_pass_left_pad
+
+  subroutine test_str_array_1_pass(test)
+    type(unit_test_type), intent(in out) :: test
+    call test%assert(["a  ", "b  "], ["a  ", " b "])
+  end subroutine test_str_array_1_pass
+
+  subroutine test_str_array_1_fail(test)
+    type(unit_test_type), intent(in out) :: test
+    call test%assert(["a  ", "b  "], ["a  ", "ab "])
+  end subroutine test_str_array_1_fail
+
+  subroutine test_str_array_2_pass(test)
+    type(unit_test_type), intent(in out) :: test
+    call test%assert( &
+         reshape(["a ", "b ", "c ", " d"], [2, 2]), &
+         reshape(["a ", " b", "c ", "d "], [2, 2]))
+  end subroutine test_str_array_2_pass
+
+  subroutine test_str_array_2_fail(test)
+    type(unit_test_type), intent(in out) :: test
+    call test%assert( &
+         reshape(["a ", "b ", "c ", " d"], [2, 2]), &
+         reshape(["a ", "ab", "c ", "d "], [2, 2]))
+  end subroutine test_str_array_2_fail
 
 !------------------------------------------------------------------------
 
