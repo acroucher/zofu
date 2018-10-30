@@ -41,39 +41,39 @@ program test_string_asserts
 contains
 
   subroutine test_str_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert("foo", "foo")
   end subroutine test_str_pass
 
   subroutine test_str_pass_unequal_lengths(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert("foo", "foo   ")
   end subroutine test_str_pass_unequal_lengths
 
   subroutine test_str_pass_left_pad(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert("foo", "  foo")
   end subroutine test_str_pass_left_pad
 
   subroutine test_str_array_1_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(["a  ", "b  "], ["a  ", " b "])
   end subroutine test_str_array_1_pass
 
   subroutine test_str_array_1_fail(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(["a  ", "b  "], ["a  ", "ab "])
   end subroutine test_str_array_1_fail
 
   subroutine test_str_array_2_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert( &
          reshape(["a ", "b ", "c ", " d"], [2, 2]), &
          reshape(["a ", " b", "c ", "d "], [2, 2]))
   end subroutine test_str_array_2_pass
 
   subroutine test_str_array_2_fail(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert( &
          reshape(["a ", "b ", "c ", " d"], [2, 2]), &
          reshape(["a ", "ab", "c ", "d "], [2, 2]))

@@ -53,59 +53,59 @@ program test_real_asserts
 contains
 
   subroutine test_real_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(2.7, 2.7)
   end subroutine test_real_pass
 
   subroutine test_real_fail(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(2.7, 2.6)
   end subroutine test_real_fail
 
   subroutine test_real_both_zero(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(0.0, 0.0)
   end subroutine test_real_both_zero
 
   subroutine test_real_large_difference_fail(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(1.e-11, -2.e16)
   end subroutine test_real_large_difference_fail
 
   subroutine test_real_small_difference_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(10., 10. + 1.e-6)
   end subroutine test_real_small_difference_pass
 
   subroutine test_real_small_difference_fail(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(-10., -10. + 1.e-4)
   end subroutine test_real_small_difference_fail
 
   subroutine test_real_small_difference_tol_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(-10., -10. + 1.e-4, tol = 5.e-4)
   end subroutine test_real_small_difference_tol_pass
 
   subroutine test_real_array_1_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert([2.718, -3.142], [2.718, -3.142])
   end subroutine test_real_array_1_pass
 
   subroutine test_real_array_1_fail(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert([2.718, -3.142, 1.618], [2.718, -3.141, 1.618])
   end subroutine test_real_array_1_fail
 
   subroutine test_real_array_2_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert( &
          reshape([2.718, -3.142, 1.618, 0.0], [2, 2]), &
          reshape([2.718, -3.142, 1.618, 0.0], [2, 2]))
   end subroutine test_real_array_2_pass
 
   subroutine test_real_array_2_fail(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert( &
          reshape([2.718, -3.142, 1.618, 0., 1., -0.5], [2, 3]), &
          reshape([2.718, -3.141, 1.618, 1., 1., -0.5], [2, 3]))

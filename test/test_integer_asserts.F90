@@ -38,34 +38,34 @@ program test_integer_asserts
 contains
 
   subroutine test_integer_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(1, 1)
   end subroutine test_integer_pass
 
   subroutine test_integer_fail(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(1, -2)
   end subroutine test_integer_fail
 
   subroutine test_integer_array_1_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert([1, -1], [1, -1])
   end subroutine test_integer_array_1_pass
 
   subroutine test_integer_array_1_fail(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert([-1, 2, 7], [-1, 2, -7])
   end subroutine test_integer_array_1_fail
 
   subroutine test_integer_array_2_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert( &
          reshape([1, 0, 0, 1], [2, 2]), &
          reshape([1, 0, 0, 1], [2, 2]))
   end subroutine test_integer_array_2_pass
 
   subroutine test_integer_array_2_fail(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert( &
          reshape([1, 2, 3, 4, 5, 6], [3, 2]), &
          reshape([1, 2, 2, 4, 5, 6], [3, 2]))

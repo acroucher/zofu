@@ -47,50 +47,50 @@ program test_logical_asserts
 contains
 
   subroutine assert_true(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(.true.)
   end subroutine assert_true
 
   subroutine assert_false(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(.false.)
   end subroutine assert_false
 
   subroutine assert_true_true(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(.true., .true.)
   end subroutine assert_true_true
 
   subroutine assert_false_false(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(.false., .false.)
   end subroutine assert_false_false
 
   subroutine assert_true_false(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert(.true., .false.)
   end subroutine assert_true_false
 
   subroutine test_logical_array_1_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert([.true., .false.], [.true., .false.])
   end subroutine test_logical_array_1_pass
 
   subroutine test_logical_array_1_fail(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert([.true., .false., .true.], &
          [.true., .true., .true.])
   end subroutine test_logical_array_1_fail
 
   subroutine test_logical_array_2_pass(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert( &
          reshape([.true., .false., .false., .true.], [2, 2]), &
          reshape([.true., .false., .false., .true.], [2, 2]))
   end subroutine test_logical_array_2_pass
 
   subroutine test_logical_array_2_fail(test)
-    type(unit_test_type), intent(in out) :: test
+    class(unit_test_type), intent(in out) :: test
     call test%assert( &
          reshape([.true., .false., .false., .true.], [2, 2]), &
          reshape([.true., .false., .true., .false.], [2, 2]))
