@@ -2,18 +2,23 @@
 
 project('zofu', ['fortran'], version: '0.1.0')
 
-zofu_modules = ['zofu.F90']
-zofu_sources = []
-foreach name: zofu_modules
-  zofu_sources += join_paths('src', name)
-endforeach
-
 zofu = shared_library('zofu',
-                         zofu_sources,
+                         join_paths('src', 'zofu.F90'),
                          install: true)
 
-test_asserts = executable(
-  'test asserts', join_paths(meson.current_source_dir(),
-                             'test', 'test_asserts.F90'),
+# Tests:
+test_modules = ['test_logical_asserts',
+                'test_integer_asserts',
+                'test_real_asserts',
+                'test_double_asserts',
+                'test_string_asserts']
+test_src_dir = join_paths(meson.current_source_dir(), 'test')
+foreach test_module: test_modules
+  test_exe = executable(
+  test_module, [
+  join_paths(test_src_dir, test_module + '.F90'),
+  join_paths(test_src_dir, 'check.F90'),
+  ],
   link_with: zofu)
-test('test asserts', test_asserts)
+  test(test_module, test_exe)
+endforeach
