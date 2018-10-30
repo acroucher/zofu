@@ -40,14 +40,8 @@ module zofu
      procedure :: pass_assertion => unit_test_pass_assertion
      procedure :: fail_assertion => unit_test_fail_assertion
      procedure :: unit_test_equal_real_tol
-     procedure :: unit_test_equal_real
      procedure :: unit_test_equal_double_tol
-     procedure :: unit_test_equal_double
-     generic :: equal_tol => &
-          unit_test_equal_real_tol, &
-          unit_test_equal_real, &
-          unit_test_equal_double_tol, &
-          unit_test_equal_double
+     generic :: equal_tol => unit_test_equal_real_tol, unit_test_equal_double_tol
      procedure :: unit_test_assert_true
      procedure :: unit_test_assert_equal_logical
      procedure :: unit_test_assert_equal_logical_array_1
@@ -55,17 +49,11 @@ module zofu
      procedure :: unit_test_assert_equal_integer
      procedure :: unit_test_assert_equal_integer_array_1
      procedure :: unit_test_assert_equal_integer_array_2
-     procedure :: unit_test_assert_equal_real_tol
      procedure :: unit_test_assert_equal_real
-     procedure :: unit_test_assert_equal_real_array_1_tol
      procedure :: unit_test_assert_equal_real_array_1
-     procedure :: unit_test_assert_equal_real_array_2_tol
      procedure :: unit_test_assert_equal_real_array_2
-     procedure :: unit_test_assert_equal_double_tol
      procedure :: unit_test_assert_equal_double
-     procedure :: unit_test_assert_equal_double_array_1_tol
      procedure :: unit_test_assert_equal_double_array_1
-     procedure :: unit_test_assert_equal_double_array_2_tol
      procedure :: unit_test_assert_equal_double_array_2
      procedure :: unit_test_assert_equal_string
      procedure :: unit_test_assert_equal_string_array_1
@@ -78,17 +66,11 @@ module zofu
           unit_test_assert_equal_integer, &
           unit_test_assert_equal_integer_array_1, &
           unit_test_assert_equal_integer_array_2, &
-          unit_test_assert_equal_real_tol, &
           unit_test_assert_equal_real, &
-          unit_test_assert_equal_real_array_1_tol, &
           unit_test_assert_equal_real_array_1, &
-          unit_test_assert_equal_real_array_2_tol, &
           unit_test_assert_equal_real_array_2, &
-          unit_test_assert_equal_double_tol, &
           unit_test_assert_equal_double, &
-          unit_test_assert_equal_double_array_1_tol, &
           unit_test_assert_equal_double_array_1, &
-          unit_test_assert_equal_double_array_2_tol, &
           unit_test_assert_equal_double_array_2, &
           unit_test_assert_equal_string, &
           unit_test_assert_equal_string_array_1, &
@@ -190,17 +172,26 @@ contains
   elemental logical function unit_test_equal_real_tol(self, &
        a, b, tol) result(equal)
     !! Tests if two real scalars are equal to within the specified
-    !! relative tolerance.
+    !! relative tolerance. If no tolerance is specified, the test
+    !! default value is used.
 
     class(unit_test_type), intent(in) :: self
     real, intent(in) :: a, b
-    real, intent(in) :: tol
+    real, intent(in), optional :: tol
+    ! Locals:
+    real :: tolerance
+
+    if (present(tol)) then
+       tolerance = tol
+    else
+       tolerance = self%default_relative_tol
+    end if
 
     associate (delta => abs(b - a), scale => max(abs(a), abs(b)))
       if (scale > self%minimum_scale) then
-         equal = (delta / scale < tol)
+         equal = (delta / scale < tolerance)
       else
-         equal = (delta < tol)
+         equal = (delta < tolerance)
       end if
     end associate
 
@@ -208,53 +199,33 @@ contains
 
 !------------------------------------------------------------------------
 
-  elemental logical function unit_test_equal_real(self, &
-       a, b) result(equal)
-
-    !! Tests if two real scalars are equal to within the default
-    !! relative tolerance.
-
-    class(unit_test_type), intent(in) :: self
-    real, intent(in) :: a, b
-
-    equal = self%equal_tol(a, b, self%default_relative_tol)
-
-  end function unit_test_equal_real
-  
-!------------------------------------------------------------------------
-
   elemental logical function unit_test_equal_double_tol(self, &
        a, b, tol) result(equal)
     !! Tests if two double precision scalars are equal to within the
-    !! specified relative tolerance.
+    !! specified relative tolerance. If no tolerance is specified, the
+    !! test default value is used.
 
     class(unit_test_type), intent(in) :: self
     real(dp), intent(in) :: a, b
-    real(dp), intent(in) :: tol
+    real(dp), intent(in), optional :: tol
+    ! Locals:
+    real(dp) :: tolerance
+
+    if (present(tol)) then
+       tolerance = tol
+    else
+       tolerance = dble(self%default_relative_tol)
+    end if
 
     associate (delta => abs(b - a), scale => max(abs(a), abs(b)))
       if (scale > dble(self%minimum_scale)) then
-         equal = (delta / scale < tol)
+         equal = (delta / scale < tolerance)
       else
-         equal = (delta < tol)
+         equal = (delta < tolerance)
       end if
     end associate
 
   end function unit_test_equal_double_tol
-
-!------------------------------------------------------------------------
-
-  elemental logical function unit_test_equal_double(self, &
-       a, b) result(equal)
-    !! Tests if two double precision scalars are equal to within the
-    !! default relative tolerance.
-
-    class(unit_test_type), intent(in) :: self
-    real(dp), intent(in) :: a, b
-
-    equal = self%equal_tol(a, b, dble(self%default_relative_tol))
-
-  end function unit_test_equal_double
 
 !------------------------------------------------------------------------
 ! Logical assertions:
@@ -352,82 +323,46 @@ contains
 ! Real assertions:
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_real_tol(self, a, b, tol)
+  subroutine unit_test_assert_equal_real(self, a, b, tol)
     !! Assert specified real scalars are equal to within the specified
-    !! relative tolerance.
+    !! relative tolerance. If no tolerance is specified, the test
+    !! default value is used.
 
     class(unit_test_type), intent(in out) :: self
     real, intent(in) :: a, b
-    real, intent(in) :: tol
+    real, intent(in), optional :: tol
 
     call self%assert(self%equal_tol(a, b, tol))
-
-  end subroutine unit_test_assert_equal_real_tol
-
-!------------------------------------------------------------------------
-
-  subroutine unit_test_assert_equal_real(self, a, b)
-    !! Assert specified real scalars are equal to within default
-    !! relative tolerance.
-
-    class(unit_test_type), intent(in out) :: self
-    real, intent(in) :: a, b
-
-    call self%assert(a, b, self%default_relative_tol)
 
   end subroutine unit_test_assert_equal_real
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_real_array_1_tol(self, a, b, tol)
+  subroutine unit_test_assert_equal_real_array_1(self, a, b, tol)
     !! Assert specified real rank-1 arrays are equal to within the
-    !! specified relative tolerance.
+    !! specified relative tolerance. If no tolerance is specified, the
+    !! test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     real, intent(in) :: a(:), b(:)
-    real, intent(in) :: tol
+    real, intent(in), optional :: tol
 
     call self%assert(all(self%equal_tol(a, b, tol)))
-
-  end subroutine unit_test_assert_equal_real_array_1_tol
-
-!------------------------------------------------------------------------
-
-  subroutine unit_test_assert_equal_real_array_1(self, a, b)
-    !! Assert specified real rank-1 arrays are equal to within the
-    !! default relative tolerance.
-
-    class(unit_test_type), intent(in out) :: self
-    real, intent(in) :: a(:), b(:)
-
-    call self%assert(all(self%equal_tol(a, b, self%default_relative_tol)))
 
   end subroutine unit_test_assert_equal_real_array_1
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_real_array_2_tol(self, a, b, tol)
+  subroutine unit_test_assert_equal_real_array_2(self, a, b, tol)
     !! Assert specified real rank-2 arrays are equal to within the
-    !! specified relative tolerance.
+    !! specified relative tolerance. If no tolerance is specified, the
+    !! test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     real, intent(in) :: a(:,:), b(:,:)
-    real, intent(in) :: tol
+    real, intent(in), optional :: tol
 
     call self%assert(all(self%equal_tol(a, b, tol)))
-
-  end subroutine unit_test_assert_equal_real_array_2_tol
-
-!------------------------------------------------------------------------
-
-  subroutine unit_test_assert_equal_real_array_2(self, a, b)
-    !! Assert specified real rank-2 arrays are equal to within the
-    !! default relative tolerance.
-
-    class(unit_test_type), intent(in out) :: self
-    real, intent(in) :: a(:,:), b(:,:)
-
-    call self%assert(all(self%equal_tol(a, b, self%default_relative_tol)))
 
   end subroutine unit_test_assert_equal_real_array_2
 
@@ -435,84 +370,46 @@ contains
 ! Double precision assertions:
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_double_tol(self, a, b, tol)
+  subroutine unit_test_assert_equal_double(self, a, b, tol)
     !! Assert specified double precision scalars are equal to within
-    !! the specified relative tolerance.
+    !! the specified relative tolerance. If no tolerance is specified,
+    !! the test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     real(dp), intent(in) :: a, b
-    real(dp), intent(in) :: tol
+    real(dp), intent(in), optional :: tol
 
     call self%assert(self%equal_tol(a, b, tol))
-
-  end subroutine unit_test_assert_equal_double_tol
-
-!------------------------------------------------------------------------
-
-  subroutine unit_test_assert_equal_double(self, a, b)
-    !! Assert specified double precision scalars are equal to within default
-    !! relative tolerance.
-
-    class(unit_test_type), intent(in out) :: self
-    real(dp), intent(in) :: a, b
-
-    call self%assert(a, b, dble(self%default_relative_tol))
 
   end subroutine unit_test_assert_equal_double
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_double_array_1_tol(self, a, b, tol)
-    !! Assert specified double precision rank-1 arrays are equal to within
-    !! the specified relative tolerance.
+  subroutine unit_test_assert_equal_double_array_1(self, a, b, tol)
+    !! Assert specified double precision rank-1 arrays are equal to
+    !! within the specified relative tolerance. If no tolerance is
+    !! specified, the test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     real(dp), intent(in) :: a(:), b(:)
-    real(dp), intent(in) :: tol
+    real(dp), intent(in), optional :: tol
 
     call self%assert(all(self%equal_tol(a, b, tol)))
-
-  end subroutine unit_test_assert_equal_double_array_1_tol
-
-!------------------------------------------------------------------------
-
-  subroutine unit_test_assert_equal_double_array_1(self, a, b)
-    !! Assert specified double precision rank-1 arrays are equal to within
-    !! the default relative tolerance.
-
-    class(unit_test_type), intent(in out) :: self
-    real(dp), intent(in) :: a(:), b(:)
-
-    call self%assert(all(self%equal_tol(a, b, &
-         dble(self%default_relative_tol))))
 
   end subroutine unit_test_assert_equal_double_array_1
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_double_array_2_tol(self, a, b, tol)
-    !! Assert specified double precision rank-2 arrays are equal to within
-    !! the specified relative tolerance.
+  subroutine unit_test_assert_equal_double_array_2(self, a, b, tol)
+    !! Assert specified double precision rank-2 arrays are equal to
+    !! within the specified relative tolerance. If no tolerance is
+    !! specified, the test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     real(dp), intent(in) :: a(:,:), b(:,:)
-    real(dp), intent(in) :: tol
+    real(dp), intent(in), optional :: tol
 
     call self%assert(all(self%equal_tol(a, b, tol)))
-
-  end subroutine unit_test_assert_equal_double_array_2_tol
-
-!------------------------------------------------------------------------
-
-  subroutine unit_test_assert_equal_double_array_2(self, a, b)
-    !! Assert specified double precision rank-2 arrays are equal to within
-    !! the default relative tolerance.
-
-    class(unit_test_type), intent(in out) :: self
-    real(dp), intent(in) :: a(:,:), b(:,:)
-
-    call self%assert(all(self%equal_tol(a, b, &
-         dble(self%default_relative_tol))))
 
   end subroutine unit_test_assert_equal_double_array_2
 
