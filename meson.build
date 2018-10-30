@@ -2,6 +2,11 @@
 
 project('zofu', ['fortran'], version: '0.1.0')
 
+if meson.get_compiler('fortran').get_id() == 'gcc'
+  f_args = ['-Wno-maybe-uninitialized']
+else
+  f_args = []
+endif
 zofu = shared_library('zofu',
                          join_paths('src', 'zofu.F90'),
                          install: true)
