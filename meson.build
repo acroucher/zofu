@@ -10,6 +10,7 @@ endif
 zofu = shared_library('zofu',
                          join_paths('src', 'zofu.F90'),
                          install: true)
+                      fortran_args: f_args,
 
 # Tests:
 test_modules = ['test_logical_asserts',
