@@ -17,7 +17,7 @@
 
 module zofu
 
-  !! Zofu (Zofu is Object-oriented Fortran Unit-testing)
+  !! Zofu (Zofu is Object-oriented Fortran Unit-testing) unit test type.
 
   implicit none
   private
@@ -33,7 +33,7 @@ module zofu
      integer, public :: num_failed_assertions !! Number of failed assertions
      real :: default_relative_tol !! Relative tolerance for testing floating point equality
      real :: minimum_scale !! Minimum scale for testing floating point equality
-     character(:), allocatable :: case_name
+     character(:), allocatable :: case_name !! Name of last case run
    contains
      procedure, public :: init => unit_test_init
      procedure, public :: run => unit_test_run
