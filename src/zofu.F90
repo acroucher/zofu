@@ -82,7 +82,7 @@ module zofu
   abstract interface
      subroutine test_case_routine(test)
        import unit_test_type
-       type(unit_test_type), intent(in out) :: test
+       class(unit_test_type), intent(in out) :: test
      end subroutine test_case_routine
   end interface
 
@@ -108,7 +108,7 @@ contains
     ! Locals:
     real, parameter :: default_relative_tol = 1.e-6
     real, parameter :: default_minimum_scale = 1.e-6
-    
+
     self%num_cases = 0
     self%num_assertions = 0
     self%num_passed_assertions = 0
