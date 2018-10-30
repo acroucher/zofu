@@ -7,10 +7,19 @@ if meson.get_compiler('fortran').get_id() == 'gcc'
 else
   f_args = []
 endif
+
+mpi = dependency('mpi', language: 'fortran', required: false)
+
+zofu_sources = [join_paths('src', 'zofu.F90')]
+if mpi.found()
+  zofu_sources += [join_paths('src', 'zofu_mpi.F90')]
+endif
+
 zofu = shared_library('zofu',
-                         join_paths('src', 'zofu.F90'),
-                         install: true)
+                      zofu_sources,
                       fortran_args: f_args,
+                      dependencies: mpi,
+                      install: true)
 
 # Tests:
 test_modules = ['test_logical_asserts',
