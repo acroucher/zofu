@@ -39,6 +39,7 @@ module zofu
      procedure, public :: run => unit_test_run
      procedure, public :: summary => unit_test_summary
      procedure :: pass_assertion => unit_test_pass_assertion
+     procedure :: fail_assertion_message => unit_test_fail_assertion_message
      procedure :: fail_assertion => unit_test_fail_assertion
      procedure :: unit_test_equal_real_tol
      procedure :: unit_test_equal_double_tol
@@ -169,19 +170,16 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_fail_assertion(self, name)
-    !! Process failed assertion.
-    class(unit_test_type), intent(in out) :: self
+  function unit_test_fail_assertion_message(self, name) result(msg)
+    !! Return YAML string for failed assertion message.
+
+    class(unit_test_type), intent(in) :: self
     character(len = *), intent(in), optional :: name
-    ! Locals:
     character(:), allocatable :: msg
+    ! Locals:
     character(len = 32) :: case_num_str
 
-    self%num_assertions = self%num_assertions + 1
-    self%num_failed_assertions = self%num_failed_assertions + 1
-
-    allocate(character(0)::msg) ! workaround for gfortran 'maybe uninitialized' warning
-    msg = '- {"case": '
+    msg = '"case": '
     if (self%case_name == '') then
        write(case_num_str, '(i0)') self%num_cases
        msg = msg // trim(case_num_str)
@@ -191,8 +189,23 @@ contains
     if (present(name)) then
        msg = msg // ', "assertion": "' // trim(name) // '"'
     end if
-    msg = msg // '}'
-    write(*, '(a)') msg
+
+  end function unit_test_fail_assertion_message
+
+!------------------------------------------------------------------------
+
+  subroutine unit_test_fail_assertion(self, name)
+    !! Process failed assertion.
+    class(unit_test_type), intent(in out) :: self
+    character(len = *), intent(in), optional :: name
+    ! Locals:
+    character(:), allocatable :: msg
+
+    self%num_assertions = self%num_assertions + 1
+    self%num_failed_assertions = self%num_failed_assertions + 1
+
+    msg = self%fail_assertion_message(name)
+    write(*, '(a)') '- {' // trim(msg) // '}'
 
   end subroutine unit_test_fail_assertion
 
