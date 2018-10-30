@@ -33,6 +33,7 @@ module zofu
      integer, public :: num_failed_assertions !! Number of failed assertions
      real :: default_relative_tol !! Relative tolerance for testing floating point equality
      real :: minimum_scale !! Minimum scale for testing floating point equality
+     character(:), allocatable :: case_name
    contains
      procedure, public :: init => unit_test_init
      procedure, public :: run => unit_test_run
@@ -119,14 +120,22 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_run(self, test_case)
+  subroutine unit_test_run(self, test_case, case_name)
     !! Runs test case.
     
     class(unit_test_type), intent(in out) :: self
     procedure(test_case_routine) :: test_case
+    character(len = *), intent(in), optional :: case_name
+
+    self%num_cases = self%num_cases + 1
+
+    if (present(case_name)) then
+       self%case_name = case_name
+    else
+       self%case_name = ''
+    end if
 
     call test_case(self)
-    self%num_cases = self%num_cases + 1
     
   end subroutine unit_test_run
 
@@ -138,13 +147,15 @@ contains
     class(unit_test_type), intent(in out) :: self
 
     write (*,'(a, i0, a, a, i0, a, a, i0, a, a, i0, a)') &
-         '{"cases": ', self%num_cases, ',', &
-         '"assertions": ', self%num_assertions, ',', &
-         '"passed": ', self%num_passed_assertions, ',', &
+         '{"cases": ', self%num_cases, ', ', &
+         '"assertions": ', self%num_assertions, ', ', &
+         '"passed": ', self%num_passed_assertions, ', ', &
          '"failed": ', self%num_failed_assertions, '}'
 
   end subroutine unit_test_summary
 
+!------------------------------------------------------------------------
+! Assertion actions:
 !------------------------------------------------------------------------
 
   subroutine unit_test_pass_assertion(self)
@@ -158,15 +169,35 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_fail_assertion(self)
+  subroutine unit_test_fail_assertion(self, name)
     !! Process failed assertion.
     class(unit_test_type), intent(in out) :: self
+    character(len = *), intent(in), optional :: name
+    ! Locals:
+    character(:), allocatable :: msg
+    character(len = 32) :: case_num_str
 
     self%num_assertions = self%num_assertions + 1
     self%num_failed_assertions = self%num_failed_assertions + 1
 
+    allocate(character(0)::msg) ! workaround for gfortran 'maybe uninitialized' warning
+    msg = '- {"case": '
+    if (self%case_name == '') then
+       write(case_num_str, '(i0)') self%num_cases
+       msg = msg // trim(case_num_str)
+    else
+       msg = msg // '"' // trim(self%case_name) // '"'
+    end if
+    if (present(name)) then
+       msg = msg // ', "assertion": "' // trim(name) // '"'
+    end if
+    msg = msg // '}'
+    write(*, '(a)') msg
+
   end subroutine unit_test_fail_assertion
 
+!------------------------------------------------------------------------
+! Floating point equality tests:
 !------------------------------------------------------------------------
 
   elemental logical function unit_test_equal_real_tol(self, &
@@ -231,53 +262,57 @@ contains
 ! Logical assertions:
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_true(self, condition)
+  subroutine unit_test_assert_true(self, condition, name)
     !! Assert specified condition is true.
 
     class(unit_test_type), intent(in out) :: self
     logical, intent(in) :: condition
+    character(len = *), intent(in), optional :: name
 
     if (condition) then
        call self%pass_assertion()
     else
-       call self%fail_assertion()
+       call self%fail_assertion(name)
     end if
 
   end subroutine unit_test_assert_true
   
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_logical(self, a, b)
+  subroutine unit_test_assert_equal_logical(self, a, b, name)
     !! Assert specified logicals are equal.
 
     class(unit_test_type), intent(in out) :: self
     logical, intent(in) :: a, b
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(a .eqv. b)
+    call self%assert(a .eqv. b, name)
 
   end subroutine unit_test_assert_equal_logical
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_logical_array_1(self, a, b)
+  subroutine unit_test_assert_equal_logical_array_1(self, a, b, name)
     !! Assert specified rank-1 logical arrays are equal.
 
     class(unit_test_type), intent(in out) :: self
     logical, intent(in) :: a(:), b(:)
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(all(a .eqv. b))
+    call self%assert(all(a .eqv. b), name)
 
   end subroutine unit_test_assert_equal_logical_array_1
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_logical_array_2(self, a, b)
+  subroutine unit_test_assert_equal_logical_array_2(self, a, b, name)
     !! Assert specified rank-2 logical arrays are equal.
 
     class(unit_test_type), intent(in out) :: self
     logical, intent(in) :: a(:,:), b(:,:)
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(all(a .eqv. b))
+    call self%assert(all(a .eqv. b), name)
 
   end subroutine unit_test_assert_equal_logical_array_2
 
@@ -285,37 +320,40 @@ contains
 ! Integer assertions:
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_integer(self, a, b)
+  subroutine unit_test_assert_equal_integer(self, a, b, name)
     !! Assert specified integers are equal.
 
     class(unit_test_type), intent(in out) :: self
     integer, intent(in) :: a, b
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(a == b)
+    call self%assert(a == b, name)
 
   end subroutine unit_test_assert_equal_integer
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_integer_array_1(self, a, b)
+  subroutine unit_test_assert_equal_integer_array_1(self, a, b, name)
     !! Assert specified rank-1 integer arrays are equal.
 
     class(unit_test_type), intent(in out) :: self
     integer, intent(in) :: a(:), b(:)
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(all(a == b))
+    call self%assert(all(a == b), name)
 
   end subroutine unit_test_assert_equal_integer_array_1
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_integer_array_2(self, a, b)
+  subroutine unit_test_assert_equal_integer_array_2(self, a, b, name)
     !! Assert specified rank-2 integer arrays are equal.
 
     class(unit_test_type), intent(in out) :: self
     integer, intent(in) :: a(:,:), b(:,:)
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(all(a == b))
+    call self%assert(all(a == b), name)
 
   end subroutine unit_test_assert_equal_integer_array_2
 
@@ -323,7 +361,7 @@ contains
 ! Real assertions:
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_real(self, a, b, tol)
+  subroutine unit_test_assert_equal_real(self, a, b, tol, name)
     !! Assert specified real scalars are equal to within the specified
     !! relative tolerance. If no tolerance is specified, the test
     !! default value is used.
@@ -331,14 +369,15 @@ contains
     class(unit_test_type), intent(in out) :: self
     real, intent(in) :: a, b
     real, intent(in), optional :: tol
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(self%equal_tol(a, b, tol))
+    call self%assert(self%equal_tol(a, b, tol), name)
 
   end subroutine unit_test_assert_equal_real
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_real_array_1(self, a, b, tol)
+  subroutine unit_test_assert_equal_real_array_1(self, a, b, tol, name)
     !! Assert specified real rank-1 arrays are equal to within the
     !! specified relative tolerance. If no tolerance is specified, the
     !! test default value is used.
@@ -346,14 +385,15 @@ contains
     class(unit_test_type), intent(in out) :: self
     real, intent(in) :: a(:), b(:)
     real, intent(in), optional :: tol
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(all(self%equal_tol(a, b, tol)))
+    call self%assert(all(self%equal_tol(a, b, tol)), name)
 
   end subroutine unit_test_assert_equal_real_array_1
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_real_array_2(self, a, b, tol)
+  subroutine unit_test_assert_equal_real_array_2(self, a, b, tol, name)
     !! Assert specified real rank-2 arrays are equal to within the
     !! specified relative tolerance. If no tolerance is specified, the
     !! test default value is used.
@@ -361,8 +401,9 @@ contains
     class(unit_test_type), intent(in out) :: self
     real, intent(in) :: a(:,:), b(:,:)
     real, intent(in), optional :: tol
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(all(self%equal_tol(a, b, tol)))
+    call self%assert(all(self%equal_tol(a, b, tol)), name)
 
   end subroutine unit_test_assert_equal_real_array_2
 
@@ -370,7 +411,7 @@ contains
 ! Double precision assertions:
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_double(self, a, b, tol)
+  subroutine unit_test_assert_equal_double(self, a, b, tol, name)
     !! Assert specified double precision scalars are equal to within
     !! the specified relative tolerance. If no tolerance is specified,
     !! the test default value is used.
@@ -378,14 +419,15 @@ contains
     class(unit_test_type), intent(in out) :: self
     real(dp), intent(in) :: a, b
     real(dp), intent(in), optional :: tol
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(self%equal_tol(a, b, tol))
+    call self%assert(self%equal_tol(a, b, tol), name)
 
   end subroutine unit_test_assert_equal_double
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_double_array_1(self, a, b, tol)
+  subroutine unit_test_assert_equal_double_array_1(self, a, b, tol, name)
     !! Assert specified double precision rank-1 arrays are equal to
     !! within the specified relative tolerance. If no tolerance is
     !! specified, the test default value is used.
@@ -393,14 +435,15 @@ contains
     class(unit_test_type), intent(in out) :: self
     real(dp), intent(in) :: a(:), b(:)
     real(dp), intent(in), optional :: tol
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(all(self%equal_tol(a, b, tol)))
+    call self%assert(all(self%equal_tol(a, b, tol)), name)
 
   end subroutine unit_test_assert_equal_double_array_1
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_double_array_2(self, a, b, tol)
+  subroutine unit_test_assert_equal_double_array_2(self, a, b, tol, name)
     !! Assert specified double precision rank-2 arrays are equal to
     !! within the specified relative tolerance. If no tolerance is
     !! specified, the test default value is used.
@@ -408,8 +451,9 @@ contains
     class(unit_test_type), intent(in out) :: self
     real(dp), intent(in) :: a(:,:), b(:,:)
     real(dp), intent(in), optional :: tol
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(all(self%equal_tol(a, b, tol)))
+    call self%assert(all(self%equal_tol(a, b, tol)), name)
 
   end subroutine unit_test_assert_equal_double_array_2
 
@@ -417,36 +461,39 @@ contains
 ! String assertions:
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_string(self, a, b)
+  subroutine unit_test_assert_equal_string(self, a, b, name)
     !! Assert specified strings are equal.
     class(unit_test_type), intent(in out) :: self
     character(len = *), intent(in) :: a, b
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(str_equal(a, b))
+    call self%assert(str_equal(a, b), name)
 
   end subroutine unit_test_assert_equal_string
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_string_array_1(self, a, b)
+  subroutine unit_test_assert_equal_string_array_1(self, a, b, name)
     !! Assert specified rank-1 string arrays are equal.
 
     class(unit_test_type), intent(in out) :: self
     character(len = *), intent(in) :: a(:), b(:)
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(all(str_equal(a, b)))
+    call self%assert(all(str_equal(a, b)), name)
 
   end subroutine unit_test_assert_equal_string_array_1
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_string_array_2(self, a, b)
+  subroutine unit_test_assert_equal_string_array_2(self, a, b, name)
     !! Assert specified rank-2 string arrays are equal.
 
     class(unit_test_type), intent(in out) :: self
     character(len = *), intent(in) :: a(:,:), b(:,:)
+    character(len = *), intent(in), optional :: name
 
-    call self%assert(all(str_equal(a, b)))
+    call self%assert(all(str_equal(a, b)), name)
 
   end subroutine unit_test_assert_equal_string_array_2
 
