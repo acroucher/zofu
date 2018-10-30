@@ -1,5 +1,7 @@
 module check_module
 
+  !! Utilities for checking numbers of cases, assertions in tests.
+
   use zofu
   implicit none
 
