@@ -21,7 +21,7 @@ contains
     !! against expected values, given the numbers expected for the
     !! last case run.
 
-    type(unit_test_type), intent(in) :: test
+    class(unit_test_type), intent(in) :: test
     type(counts_type), intent(in out) :: last
     integer, intent(in) :: cases, assertions, passed, failed
     logical, intent(in out) :: OK
