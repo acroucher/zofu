@@ -21,10 +21,10 @@ test_modules = ['test_logical_asserts',
 test_src_dir = join_paths(meson.current_source_dir(), 'test')
 foreach test_module: test_modules
   test_exe = executable(
-  test_module, [
-  join_paths(test_src_dir, test_module + '.F90'),
-  join_paths(test_src_dir, 'check.F90'),
-  ],
-  link_with: zofu)
+    test_module,
+    [join_paths(test_src_dir, test_module + '.F90'),
+     join_paths(test_src_dir, 'check.F90')],
+    fortran_args: f_args,
+    link_with: zofu)
   test(test_module, test_exe)
 endforeach
