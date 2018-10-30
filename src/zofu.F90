@@ -22,7 +22,7 @@ module zofu
   implicit none
   private
 
-  integer, parameter :: dp = kind(0.d0) !! double precision kind
+  integer, parameter, public :: dp = kind(0.d0) !! double precision kind
 
   type, public :: unit_test_type
      !! Unit test type
