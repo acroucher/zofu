@@ -34,7 +34,6 @@ module zofu
    contains
      private
      procedure, public :: init => test_counter_init
-     procedure, public :: add => test_counter_add
      procedure, public :: pass => test_counter_pass
      procedure, public :: fail => test_counter_fail
      procedure :: test_counter_assign
@@ -137,23 +136,12 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine test_counter_add(self)
-    !! Increments counter count.
-
-    class(test_counter_type), intent(in out) :: self
-
-    self%count = self%count + 1
-
-  end subroutine test_counter_add
-
-!------------------------------------------------------------------------
-
   subroutine test_counter_pass(self)
     !! Adds pass to counter.
 
     class(test_counter_type), intent(in out) :: self
 
-    call self%add()
+    self%count = self%count + 1
     self%passed = self%passed + 1
 
   end subroutine test_counter_pass
@@ -161,11 +149,11 @@ contains
 !------------------------------------------------------------------------
 
   subroutine test_counter_fail(self)
-    !! Adds fail to counter.
+    !! Adds failure to counter.
 
     class(test_counter_type), intent(in out) :: self
 
-    call self%add()
+    self%count = self%count + 1
     self%failed = self%failed + 1
 
   end subroutine test_counter_fail
