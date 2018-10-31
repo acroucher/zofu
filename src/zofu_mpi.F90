@@ -29,7 +29,7 @@ module zofu_mpi
   type, public, extends(unit_test_type) :: unit_test_mpi_type
      !! Type for unit test parallelized using MPI.
    contains
-     procedure, public :: mpi_reduce => unit_test_mpi_reduce
+     procedure :: mpi_reduce => unit_test_mpi_reduce
      procedure, public :: summary => unit_test_mpi_summary
      procedure :: fail_assertion_message => unit_test_mpi_fail_assertion_message
   end type unit_test_mpi_type
