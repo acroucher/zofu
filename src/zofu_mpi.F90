@@ -43,7 +43,6 @@ contains
 
     class(unit_test_mpi_type), intent(in out) :: self
 
-    call reduce_update(self%num_cases)
     call reduce_update(self%num_assertions)
     call reduce_update(self%num_passed_assertions)
     call reduce_update(self%num_failed_assertions)
