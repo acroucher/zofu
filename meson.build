@@ -26,6 +26,7 @@ test_modules = ['test_logical_asserts',
                 'test_integer_asserts',
                 'test_real_asserts',
                 'test_double_asserts',
+                'test_complex_asserts',
                 'test_string_asserts']
 test_src_dir = join_paths(meson.current_source_dir(), 'test')
 foreach test_module: test_modules

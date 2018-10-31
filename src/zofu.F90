@@ -62,7 +62,10 @@ module zofu
      procedure :: fail_assertion => unit_test_fail_assertion
      procedure :: unit_test_equal_real_tol
      procedure :: unit_test_equal_double_tol
-     generic :: equal_tol => unit_test_equal_real_tol, unit_test_equal_double_tol
+     procedure :: unit_test_equal_complex_tol
+     generic :: equal_tol => unit_test_equal_real_tol, &
+          unit_test_equal_double_tol, &
+          unit_test_equal_complex_tol
      procedure :: unit_test_assert_true
      procedure :: unit_test_assert_equal_logical
      procedure :: unit_test_assert_equal_logical_array_1
@@ -76,6 +79,9 @@ module zofu
      procedure :: unit_test_assert_equal_double
      procedure :: unit_test_assert_equal_double_array_1
      procedure :: unit_test_assert_equal_double_array_2
+     procedure :: unit_test_assert_equal_complex
+     procedure :: unit_test_assert_equal_complex_array_1
+     procedure :: unit_test_assert_equal_complex_array_2
      procedure :: unit_test_assert_equal_string
      procedure :: unit_test_assert_equal_string_array_1
      procedure :: unit_test_assert_equal_string_array_2
@@ -93,6 +99,9 @@ module zofu
           unit_test_assert_equal_double, &
           unit_test_assert_equal_double_array_1, &
           unit_test_assert_equal_double_array_2, &
+          unit_test_assert_equal_complex, &
+          unit_test_assert_equal_complex_array_1, &
+          unit_test_assert_equal_complex_array_2, &
           unit_test_assert_equal_string, &
           unit_test_assert_equal_string_array_1, &
           unit_test_assert_equal_string_array_2
@@ -398,6 +407,36 @@ contains
   end function unit_test_equal_double_tol
 
 !------------------------------------------------------------------------
+
+  elemental logical function unit_test_equal_complex_tol(self, &
+       a, b, tol) result(equal)
+    !! Tests if two complex scalars are equal to within the specified
+    !! relative tolerance. If no tolerance is specified, the test
+    !! default value is used.
+
+    class(unit_test_type), intent(in) :: self
+    complex, intent(in) :: a, b
+    real, intent(in), optional :: tol
+    ! Locals:
+    real :: tolerance
+
+    if (present(tol)) then
+       tolerance = tol
+    else
+       tolerance = self%default_relative_tol
+    end if
+
+    associate (delta => abs(b - a), scale => max(abs(a), abs(b)))
+      if (scale > self%minimum_scale) then
+         equal = (delta / scale < tolerance)
+      else
+         equal = (delta < tolerance)
+      end if
+    end associate
+
+  end function unit_test_equal_complex_tol
+
+!------------------------------------------------------------------------
 ! Logical assertions:
 !------------------------------------------------------------------------
 
@@ -595,6 +634,56 @@ contains
     call self%assert(all(self%equal_tol(a, b, tol)), name)
 
   end subroutine unit_test_assert_equal_double_array_2
+
+!------------------------------------------------------------------------
+! Complex assertions:
+!------------------------------------------------------------------------
+
+  subroutine unit_test_assert_equal_complex(self, a, b, tol, name)
+    !! Assert specified complex scalars are equal to within the
+    !! specified relative tolerance. If no tolerance is specified, the
+    !! test default value is used.
+
+    class(unit_test_type), intent(in out) :: self
+    complex, intent(in) :: a, b
+    real, intent(in), optional :: tol
+    character(len = *), intent(in), optional :: name
+
+    call self%assert(self%equal_tol(a, b, tol), name)
+
+  end subroutine unit_test_assert_equal_complex
+
+!------------------------------------------------------------------------
+
+  subroutine unit_test_assert_equal_complex_array_1(self, a, b, tol, name)
+    !! Assert specified complex rank-1 arrays are equal to within the
+    !! specified relative tolerance. If no tolerance is specified, the
+    !! test default value is used.
+
+    class(unit_test_type), intent(in out) :: self
+    complex, intent(in) :: a(:), b(:)
+    real, intent(in), optional :: tol
+    character(len = *), intent(in), optional :: name
+
+    call self%assert(all(self%equal_tol(a, b, tol)), name)
+
+  end subroutine unit_test_assert_equal_complex_array_1
+
+!------------------------------------------------------------------------
+
+  subroutine unit_test_assert_equal_complex_array_2(self, a, b, tol, name)
+    !! Assert specified complex rank-2 arrays are equal to within the
+    !! specified relative tolerance. If no tolerance is specified, the
+    !! test default value is used.
+
+    class(unit_test_type), intent(in out) :: self
+    complex, intent(in) :: a(:,:), b(:,:)
+    real, intent(in), optional :: tol
+    character(len = *), intent(in), optional :: name
+
+    call self%assert(all(self%equal_tol(a, b, tol)), name)
+
+  end subroutine unit_test_assert_equal_complex_array_2
 
 !------------------------------------------------------------------------
 ! String assertions:
