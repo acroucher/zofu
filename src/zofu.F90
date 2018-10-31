@@ -55,6 +55,7 @@ module zofu
      procedure, public :: init => unit_test_init
      procedure, public :: run => unit_test_run
      procedure, public :: summary => unit_test_summary
+     procedure :: yaml => unit_test_yaml
      procedure :: start_case => unit_test_start_case
      procedure :: end_case => unit_test_end_case
      procedure :: pass_assertion => unit_test_pass_assertion
@@ -272,14 +273,26 @@ contains
 
 !------------------------------------------------------------------------
 
+  function unit_test_yaml(self, cases, assertions) result(yaml)
+    !! Writes YAML summary of specified case and assertion counters.
+
+    class(unit_test_type), intent(in) :: self
+    type(test_counter_type), intent(in) :: cases, assertions
+    character(:), allocatable :: yaml
+
+    yaml = '{"cases": ' // cases%yaml() // ', ' // &
+         '"assertions": ' // assertions%yaml() // '}'
+
+  end function unit_test_yaml
+
+!------------------------------------------------------------------------
+
   subroutine unit_test_summary(self)
     !! Writes YAML summary of test statistics to stdout.
 
-    class(unit_test_type), intent(in out) :: self
+    class(unit_test_type), intent(in) :: self
 
-    write(*, '(a)') &
-         '{"cases": ' // self%cases%yaml() // ', ' // &
-         '"assertions": ' // self%assertions%yaml() // '}'
+    write(*, '(a)') self%yaml(self%cases, self%assertions)
 
   end subroutine unit_test_summary
 
