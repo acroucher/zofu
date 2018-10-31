@@ -26,6 +26,12 @@ program test_mpi
   call test%run(test_integer_fail)
   call check(test, last, 1, size, size - 1, 1, OK)
 
+  call test%run(test_real_array_pass)
+  call check(test, last, 1, size, size, 0, OK)
+
+  call test%run(test_real_array_fail)
+  call check(test, last, 1, size, size - 1, 1, OK)
+
   call test%summary()
 
   call mpi_finalize(ierr)
@@ -49,5 +55,27 @@ contains
     end if
     call test%assert(expected, rank)
   end subroutine test_integer_fail
-  
+
+  subroutine test_real_array_pass(test)
+    class(unit_test_type), intent(in out) :: test
+    ! Locals:
+    real :: x(rank + 1)
+    integer :: i
+    x = [(real(i), i = 1, rank + 1)]
+    call test%assert(x, x)
+  end subroutine test_real_array_pass
+
+  subroutine test_real_array_fail(test)
+    class(unit_test_type), intent(in out) :: test
+    ! Locals:
+    real :: x(rank + 1), y(rank + 1)
+    integer :: i
+    x = [(real(i), i = 1, rank + 1)]
+    y = x
+    if (rank == 0) then
+       y(1) = y(1) - 0.1
+    end if
+    call test%assert(x, y)
+  end subroutine test_real_array_fail
+
 end program test_mpi
