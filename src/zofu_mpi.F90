@@ -29,12 +29,36 @@ module zofu_mpi
   type, public, extends(unit_test_type) :: unit_test_mpi_type
      !! Type for unit test parallelized using MPI.
    contains
+     procedure :: end_case => unit_test_mpi_end_case
      procedure :: mpi_reduce => unit_test_mpi_reduce
      procedure, public :: summary => unit_test_mpi_summary
      procedure :: fail_assertion_message => unit_test_mpi_fail_assertion_message
   end type unit_test_mpi_type
 
 contains
+
+!------------------------------------------------------------------------
+
+  subroutine unit_test_mpi_end_case(self)
+    !! Ends MPI test case. A case fails if there are failed assertions
+    !! on any rank.
+
+    class(unit_test_mpi_type), intent(in out) :: self
+    ! Locals:
+    logical :: global_case_failure
+    integer :: ierr
+
+    call mpi_reduce(self%case_assertions%failed > 0, &
+         global_case_failure, 1, &
+         MPI_LOGICAL, MPI_LOR, 0, MPI_COMM_WORLD, ierr)
+
+    if (global_case_failure) then
+       call self%cases%fail()
+    else
+       call self%cases%pass()
+    end if
+
+  end subroutine unit_test_mpi_end_case
 
 !------------------------------------------------------------------------
 
