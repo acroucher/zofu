@@ -38,6 +38,7 @@ module zofu
      procedure, public :: init => unit_test_init
      procedure, public :: run => unit_test_run
      procedure, public :: summary => unit_test_summary
+     procedure :: update_case => unit_test_update_case
      procedure :: pass_assertion => unit_test_pass_assertion
      procedure :: fail_assertion_message => unit_test_fail_assertion_message
      procedure :: fail_assertion => unit_test_fail_assertion
@@ -121,11 +122,10 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_run(self, test_case, case_name)
-    !! Runs test case.
-    
+  subroutine unit_test_update_case(self, case_name)
+    !! Updates case number and name.
+
     class(unit_test_type), intent(in out) :: self
-    procedure(test_case_routine) :: test_case
     character(len = *), intent(in), optional :: case_name
 
     self%num_cases = self%num_cases + 1
@@ -136,8 +136,20 @@ contains
        self%case_name = ''
     end if
 
-    call test_case(self)
+  end subroutine unit_test_update_case
+
+!------------------------------------------------------------------------
+
+  subroutine unit_test_run(self, test_case, case_name)
+    !! Runs test case.
     
+    class(unit_test_type), intent(in out) :: self
+    procedure(test_case_routine) :: test_case
+    character(len = *), intent(in), optional :: case_name
+
+    call self%update_case(case_name)
+    call test_case(self)
+
   end subroutine unit_test_run
 
 !------------------------------------------------------------------------
