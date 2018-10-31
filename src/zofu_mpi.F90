@@ -66,9 +66,14 @@ contains
     !! Writes YAML summary of test statistics (from all ranks) to stdout.
 
     class(unit_test_mpi_type), intent(in out) :: self
+    ! Locals:
+    integer :: rank, ierr
 
+    call mpi_comm_rank(MPI_COMM_WORLD, rank, ierr)
     call self%mpi_reduce()
-    call self%unit_test_type%summary()
+    if (rank == 0) then
+       call self%unit_test_type%summary()
+    end if
 
   end subroutine unit_test_mpi_summary
 
