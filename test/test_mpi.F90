@@ -35,25 +35,19 @@ contains
 
   subroutine test_integer_pass(test)
     class(unit_test_type), intent(in out) :: test
-    select type(test)
-    type is (unit_test_mpi_type)
-       call test%assert(rank, rank)
-    end select
+    call test%assert(rank, rank)
   end subroutine test_integer_pass
 
   subroutine test_integer_fail(test)
     class(unit_test_type), intent(in out) :: test
     ! Locals:
     integer :: expected
-    select type(test)
-    type is (unit_test_mpi_type)
-       if (rank == size - 1) then
-          expected = rank + 1
-       else
-          expected = rank
-       end if
-       call test%assert(expected, rank)
-    end select
+    if (rank == size - 1) then
+       expected = rank + 1
+    else
+       expected = rank
+    end if
+    call test%assert(expected, rank)
   end subroutine test_integer_fail
   
 end program test_mpi
