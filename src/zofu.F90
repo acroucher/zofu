@@ -58,7 +58,7 @@ module zofu
      procedure :: start_case => unit_test_start_case
      procedure :: end_case => unit_test_end_case
      procedure :: pass_assertion => unit_test_pass_assertion
-     procedure :: fail_assertion_message => unit_test_fail_assertion_message
+     procedure :: failure_yaml => unit_test_failure_yaml
      procedure :: fail_assertion => unit_test_fail_assertion
      procedure :: unit_test_equal_real_tol
      procedure :: unit_test_equal_double_tol
@@ -299,7 +299,7 @@ contains
 
 !------------------------------------------------------------------------
 
-  function unit_test_fail_assertion_message(self, name) result(msg)
+  function unit_test_failure_yaml(self, name) result(msg)
     !! Return YAML string for failed assertion message.
 
     class(unit_test_type), intent(in) :: self
@@ -319,7 +319,7 @@ contains
        msg = msg // ', "assertion": "' // trim(name) // '"'
     end if
 
-  end function unit_test_fail_assertion_message
+  end function unit_test_failure_yaml
 
 !------------------------------------------------------------------------
 
@@ -327,14 +327,11 @@ contains
     !! Process failed assertion.
     class(unit_test_type), intent(in out) :: self
     character(len = *), intent(in), optional :: name
-    ! Locals:
-    character(:), allocatable :: msg
 
     call self%assertions%fail()
     call self%case_assertions%fail()
 
-    msg = self%fail_assertion_message(name)
-    write(*, '(a)') '- {' // trim(msg) // '}'
+    write(*, '(a)') '- {' // self%failure_yaml(name) // '}'
 
   end subroutine unit_test_fail_assertion
 

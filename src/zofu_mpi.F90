@@ -32,7 +32,7 @@ module zofu_mpi
      procedure :: end_case => unit_test_mpi_end_case
      procedure :: global_assertions => unit_test_global_assertions
      procedure, public :: summary => unit_test_mpi_summary
-     procedure :: fail_assertion_message => unit_test_mpi_fail_assertion_message
+     procedure :: failure_yaml => unit_test_mpi_failure_yaml
   end type unit_test_mpi_type
 
 contains
@@ -100,7 +100,7 @@ contains
 
 !------------------------------------------------------------------------
 
-  function unit_test_mpi_fail_assertion_message(self, name) result(msg)
+  function unit_test_mpi_failure_yaml(self, name) result(msg)
     !! Return YAML string for failed assertion message, including MPI
     !! rank.
 
@@ -111,13 +111,13 @@ contains
     integer :: rank, ierr
     character(len = 32) :: rank_str
 
-    msg = self%unit_test_type%fail_assertion_message(name)
+    msg = self%unit_test_type%failure_yaml(name)
 
     call mpi_comm_rank(MPI_COMM_WORLD, rank, ierr)
     write(rank_str, '(i0)') rank
     msg = msg // ', "rank": ' // trim(rank_str)
 
-  end function unit_test_mpi_fail_assertion_message
+  end function unit_test_mpi_failure_yaml
 
 !------------------------------------------------------------------------  
 
