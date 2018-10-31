@@ -55,6 +55,7 @@ module zofu
      procedure, public :: run => unit_test_run
      procedure, public :: summary => unit_test_summary
      procedure :: start_case => unit_test_start_case
+     procedure :: end_case => unit_test_end_case
      procedure :: pass_assertion => unit_test_pass_assertion
      procedure :: fail_assertion_message => unit_test_fail_assertion_message
      procedure :: fail_assertion => unit_test_fail_assertion
@@ -235,6 +236,21 @@ contains
     end if
 
   end subroutine unit_test_start_case
+
+!------------------------------------------------------------------------
+
+  subroutine unit_test_end_case(self)
+    !! Ends test case.
+
+    class(unit_test_type), intent(in out) :: self
+
+    if (self%case_assertions%failed > 0) then
+       call self%cases%fail()
+    else
+       call self%cases%pass()
+    end if
+
+  end subroutine unit_test_end_case
 
 !------------------------------------------------------------------------
 
