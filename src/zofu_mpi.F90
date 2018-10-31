@@ -30,7 +30,7 @@ module zofu_mpi
      !! Type for unit test parallelized using MPI.
    contains
      procedure :: end_case => unit_test_mpi_end_case
-     procedure :: mpi_reduce => unit_test_mpi_reduce
+     procedure :: global_assertions => unit_test_global_assertions
      procedure, public :: summary => unit_test_mpi_summary
      procedure :: fail_assertion_message => unit_test_mpi_fail_assertion_message
   end type unit_test_mpi_type
@@ -62,41 +62,38 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_mpi_reduce(self)
-    !! Adds up test statistics from all MPI ranks.
+  type(test_counter_type) function unit_test_global_assertions(self) &
+       result(global_assertions)
+    !! Returns assertions counter on rank 0 with data summed from all
+    !! MPI ranks.
 
-    class(unit_test_mpi_type), intent(in out) :: self
+    class(unit_test_mpi_type), intent(in) :: self
+    ! Locals:
+    integer :: ierr
 
-    call reduce_update(self%assertions%count)
-    call reduce_update(self%assertions%passed)
-    call reduce_update(self%assertions%failed)
+    call mpi_reduce(self%assertions%count, global_assertions%count, &
+         1, MPI_INTEGER, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
+    call mpi_reduce(self%assertions%passed, global_assertions%passed, &
+         1, MPI_INTEGER, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
+    call mpi_reduce(self%assertions%failed, global_assertions%failed, &
+         1, MPI_INTEGER, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
 
-  contains
-
-    subroutine reduce_update(count)
-      integer, intent(in out) :: count
-      ! Locals:
-      integer :: total_count, ierr
-      call mpi_reduce(count, total_count, 1, &
-           MPI_INTEGER, MPI_SUM, 0, MPI_COMM_WORLD, ierr)
-      count = total_count
-    end subroutine reduce_update
-
-  end subroutine unit_test_mpi_reduce
+  end function unit_test_global_assertions
 
 !------------------------------------------------------------------------
 
   subroutine unit_test_mpi_summary(self)
     !! Writes YAML summary of test statistics (from all ranks) to stdout.
 
-    class(unit_test_mpi_type), intent(in out) :: self
+    class(unit_test_mpi_type), intent(in) :: self
     ! Locals:
     integer :: rank, ierr
+    type(test_counter_type) :: global_assertions
 
     call mpi_comm_rank(MPI_COMM_WORLD, rank, ierr)
-    call self%mpi_reduce()
+    global_assertions = self%global_assertions()
     if (rank == 0) then
-       call self%unit_test_type%summary()
+       write(*, '(a)') self%yaml(self%cases, global_assertions)
     end if
 
   end subroutine unit_test_mpi_summary
