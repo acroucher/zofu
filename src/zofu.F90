@@ -24,13 +24,28 @@ module zofu
 
   integer, parameter, public :: dp = kind(0.d0) !! double precision kind
 
+  type, public :: test_counter_type
+     !! Type for counting total number of cases or assertions,
+     !! together with how many have passed and failed.
+     private
+     integer, public :: count !! Total count
+     integer, public :: passed !! How many have passed
+     integer, public :: failed !! How many have failed
+   contains
+     private
+     procedure, public :: init => test_counter_init
+     procedure, public :: add => test_counter_add
+     procedure, public :: pass => test_counter_pass
+     procedure, public :: fail => test_counter_fail
+     procedure :: test_counter_assign
+     generic, public :: assignment(=) => test_counter_assign
+  end type test_counter_type
+
   type, public :: unit_test_type
      !! Unit test type
      private
-     integer, public :: num_cases !! Number of test cases
-     integer, public :: num_assertions !! Number of assertions
-     integer, public :: num_passed_assertions !! Number of passed assertions
-     integer, public :: num_failed_assertions !! Number of failed assertions
+     type(test_counter_type), public :: cases !! Test case counter
+     type(test_counter_type), public :: assertions !! Test assertions counter
      real :: default_relative_tol !! Relative tolerance for testing floating point equality
      real :: minimum_scale !! Minimum scale for testing floating point equality
      character(:), allocatable :: case_name !! Name of last case run
@@ -38,7 +53,7 @@ module zofu
      procedure, public :: init => unit_test_init
      procedure, public :: run => unit_test_run
      procedure, public :: summary => unit_test_summary
-     procedure :: update_case => unit_test_update_case
+     procedure :: start_case => unit_test_start_case
      procedure :: pass_assertion => unit_test_pass_assertion
      procedure :: fail_assertion_message => unit_test_fail_assertion_message
      procedure :: fail_assertion => unit_test_fail_assertion
@@ -90,6 +105,8 @@ module zofu
 contains
 
 !------------------------------------------------------------------------
+! String handling functions:
+!------------------------------------------------------------------------
 
   logical elemental function str_equal(a, b)
     !! Tests if two character strings are equal.
@@ -101,6 +118,69 @@ contains
   end function str_equal
 
 !------------------------------------------------------------------------
+! Test counter methods:
+!------------------------------------------------------------------------
+
+  subroutine test_counter_init(self)
+    !! Initializes test counter.
+
+    class(test_counter_type), intent(in out) :: self
+    self%count = 0
+    self%passed = 0
+    self%failed = 0
+
+  end subroutine test_counter_init
+
+!------------------------------------------------------------------------
+
+  subroutine test_counter_add(self)
+    !! Increments counter count.
+
+    class(test_counter_type), intent(in out) :: self
+
+    self%count = self%count + 1
+
+  end subroutine test_counter_add
+
+!------------------------------------------------------------------------
+
+  subroutine test_counter_pass(self)
+    !! Adds pass to counter.
+
+    class(test_counter_type), intent(in out) :: self
+
+    self%passed = self%passed + 1
+
+  end subroutine test_counter_pass
+
+!------------------------------------------------------------------------
+
+  subroutine test_counter_fail(self)
+    !! Adds fail to counter.
+
+    class(test_counter_type), intent(in out) :: self
+
+    self%failed = self%failed + 1
+
+  end subroutine test_counter_fail
+
+!------------------------------------------------------------------------
+
+  subroutine test_counter_assign(dest, source)
+    !! Assigns one test counter to another.
+
+    class(test_counter_type), intent(out) :: dest
+    type(test_counter_type), intent(in) :: source
+
+    dest%count = source%count
+    dest%passed = source%passed
+    dest%failed = source%failed
+
+  end subroutine test_counter_assign
+
+!------------------------------------------------------------------------
+! Unit test methods:
+!------------------------------------------------------------------------
 
   subroutine unit_test_init(self)
     !! Initialise unit test.
@@ -110,10 +190,8 @@ contains
     real, parameter :: default_relative_tol = 1.e-6
     real, parameter :: default_minimum_scale = 1.e-6
 
-    self%num_cases = 0
-    self%num_assertions = 0
-    self%num_passed_assertions = 0
-    self%num_failed_assertions = 0
+    call self%cases%init()
+    call self%assertions%init()
 
     self%default_relative_tol = default_relative_tol
     self%minimum_scale = default_minimum_scale
@@ -122,13 +200,13 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_update_case(self, case_name)
-    !! Updates case number and name.
+  subroutine unit_test_start_case(self, case_name)
+    !! Starts new test case.
 
     class(unit_test_type), intent(in out) :: self
     character(len = *), intent(in), optional :: case_name
 
-    self%num_cases = self%num_cases + 1
+    call self%cases%add()
 
     if (present(case_name)) then
        self%case_name = case_name
@@ -136,7 +214,7 @@ contains
        self%case_name = ''
     end if
 
-  end subroutine unit_test_update_case
+  end subroutine unit_test_start_case
 
 !------------------------------------------------------------------------
 
@@ -146,9 +224,19 @@ contains
     class(unit_test_type), intent(in out) :: self
     procedure(test_case_routine) :: test_case
     character(len = *), intent(in), optional :: case_name
+    ! Locals:
+    type(test_counter_type) :: start_assertions
 
-    call self%update_case(case_name)
+    call self%start_case(case_name)
+    start_assertions = self%assertions
+
     call test_case(self)
+
+    if (self%assertions%failed > start_assertions%failed) then
+       call self%cases%fail()
+    else
+       call self%cases%pass()
+    end if
 
   end subroutine unit_test_run
 
@@ -160,10 +248,10 @@ contains
     class(unit_test_type), intent(in out) :: self
 
     write (*,'(a, i0, a, a, i0, a, a, i0, a, a, i0, a)') &
-         '{"cases": ', self%num_cases, ', ', &
-         '"assertions": ', self%num_assertions, ', ', &
-         '"passed": ', self%num_passed_assertions, ', ', &
-         '"failed": ', self%num_failed_assertions, '}'
+         '{"cases": ', self%cases%count, ', ', &
+         '"assertions": ', self%assertions%count, ', ', &
+         '"passed": ', self%assertions%passed, ', ', &
+         '"failed": ', self%assertions%failed, '}'
 
   end subroutine unit_test_summary
 
@@ -175,8 +263,8 @@ contains
     !! Process passed assertion.
     class(unit_test_type), intent(in out) :: self
 
-    self%num_assertions = self%num_assertions + 1
-    self%num_passed_assertions = self%num_passed_assertions + 1
+    call self%assertions%add()
+    call self%assertions%pass()
 
   end subroutine unit_test_pass_assertion
 
@@ -193,7 +281,7 @@ contains
 
     msg = '"case": '
     if (self%case_name == '') then
-       write(case_num_str, '(i0)') self%num_cases
+       write(case_num_str, '(i0)') self%cases%count
        msg = msg // trim(case_num_str)
     else
        msg = msg // '"' // trim(self%case_name) // '"'
@@ -213,8 +301,8 @@ contains
     ! Locals:
     character(:), allocatable :: msg
 
-    self%num_assertions = self%num_assertions + 1
-    self%num_failed_assertions = self%num_failed_assertions + 1
+    call self%assertions%add()
+    call self%assertions%fail()
 
     msg = self%fail_assertion_message(name)
     write(*, '(a)') '- {' // trim(msg) // '}'

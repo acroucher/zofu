@@ -4,38 +4,30 @@ module check_module
 
   use zofu
   implicit none
-
-  type counts_type
-     integer :: cases = 0
-     integer :: assertions = 0
-     integer :: passed = 0
-     integer :: failed = 0
-  end type counts_type
   
 contains
 
 !------------------------------------------------------------------------
 
-  subroutine check(test, last, cases, assertions, passed, failed, OK)
+  subroutine check(test, last_cases, last_assertions, &
+       cases, assertions, passed, failed, OK)
     !! Checks total numbers of cases, assertions, passes and fails
     !! against expected values, given the numbers expected for the
     !! last case run.
 
     class(unit_test_type), intent(in) :: test
-    type(counts_type), intent(in out) :: last
+    type(test_counter_type), intent(in out) :: last_cases, last_assertions
     integer, intent(in) :: cases, assertions, passed, failed
     logical, intent(in out) :: OK
 
     OK = ( OK .and. &
-         (test%num_cases == last%cases + cases) .and. &
-         (test%num_assertions == last%assertions + assertions) .and. &
-         (test%num_passed_assertions == last%passed + passed) .and. &
-         (test%num_failed_assertions == last%failed + failed))
+         (test%cases%count == last_cases%count + cases) .and. &
+         (test%assertions%count == last_assertions%count + assertions) .and. &
+         (test%assertions%passed == last_assertions%passed + passed) .and. &
+         (test%assertions%failed == last_assertions%failed + failed))
 
-    last%cases = test%num_cases
-    last%assertions = test%num_assertions
-    last%passed = test%num_passed_assertions
-    last%failed = test%num_failed_assertions
+    last_cases = test%cases
+    last_assertions = test%assertions
 
   end subroutine check
 

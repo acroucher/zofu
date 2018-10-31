@@ -7,29 +7,31 @@ program test_integer_asserts
 
   implicit none
   type(unit_test_type) :: test
-  type(counts_type) :: last
+  type(test_counter_type) :: last_cases, last_assertions
   logical :: OK
 
   call test%init()
+  call last_cases%init()
+  call last_assertions%init()
   OK = .true.
 
   call test%run(test_integer_pass)
-  call check(test, last, 1, 1, 1, 0, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
   call test%run(test_integer_fail)
-  call check(test, last, 1, 1, 0, 1, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
   call test%run(test_integer_array_1_pass)
-  call check(test, last, 1, 1, 1, 0, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
   call test%run(test_integer_array_1_fail)
-  call check(test, last, 1, 1, 0, 1, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
   call test%run(test_integer_array_2_pass)
-  call check(test, last, 1, 1, 1, 0, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
   call test%run(test_integer_array_2_fail)
-  call check(test, last, 1, 1, 0, 1, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
   call test%summary()
 

@@ -7,44 +7,46 @@ program test_real_asserts
 
   implicit none
   type(unit_test_type) :: test
-  type(counts_type) :: last
+  type(test_counter_type) :: last_cases, last_assertions
   logical :: OK
 
   call test%init()
+  call last_cases%init()
+  call last_assertions%init()
   OK = .true.
 
   call test%run(test_real_pass)
-  call check(test, last, 1, 1, 1, 0, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
   call test%run(test_real_fail)
-  call check(test, last, 1, 1, 0, 1, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
   call test%run(test_real_both_zero)
-  call check(test, last, 1, 1, 1, 0, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
   call test%run(test_real_large_difference_fail)
-  call check(test, last, 1, 1, 0, 1, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
   call test%run(test_real_small_difference_pass)
-  call check(test, last, 1, 1, 1, 0, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
   call test%run(test_real_small_difference_fail)
-  call check(test, last, 1, 1, 0, 1, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
   call test%run(test_real_small_difference_tol_pass)
-  call check(test, last, 1, 1, 1, 0, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
   call test%run(test_real_array_1_pass)
-  call check(test, last, 1, 1, 1, 0, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
   call test%run(test_real_array_1_fail)
-  call check(test, last, 1, 1, 0, 1, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
   call test%run(test_real_array_2_pass)
-  call check(test, last, 1, 1, 1, 0, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
   call test%run(test_real_array_2_fail)
-  call check(test, last, 1, 1, 0, 1, OK)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
   call test%summary()
 

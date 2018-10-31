@@ -9,7 +9,7 @@ program test_mpi
 
   implicit none
   type(unit_test_mpi_type) :: test
-  type(counts_type) :: last
+  type(test_counter_type) :: last_cases, last_assertions
   logical :: OK
   integer :: rank, size, ierr
 
@@ -18,19 +18,21 @@ program test_mpi
   call mpi_comm_size(MPI_COMM_WORLD, size, ierr)
   
   call test%init()
+  call last_cases%init()
+  call last_assertions%init()
   OK = .true.
 
   call test%run(test_integer_pass)
-  call check(test, last, 1, size, size, 0, OK)
+  call check(test, last_cases, last_assertions, 1, size, size, 0, OK)
 
   call test%run(test_integer_fail)
-  call check(test, last, 1, size, size - 1, 1, OK)
+  call check(test, last_cases, last_assertions, 1, size, size - 1, 1, OK)
 
   call test%run(test_real_array_pass)
-  call check(test, last, 1, size, size, 0, OK)
+  call check(test, last_cases, last_assertions, 1, size, size, 0, OK)
 
   call test%run(test_real_array_fail)
-  call check(test, last, 1, size, size - 1, 1, OK)
+  call check(test, last_cases, last_assertions, 1, size, size - 1, 1, OK)
 
   call test%summary()
 
