@@ -42,7 +42,7 @@ contains
             (global_num_passed == last_assertions%passed + passed) .and. &
             (global_num_failed == last_assertions%failed + failed))
 
-       last_cases%count = test%cases%count
+       last_cases = test%cases
        last_assertions%count = global_num_assertions
        last_assertions%passed = global_num_passed
        last_assertions%failed = global_num_failed

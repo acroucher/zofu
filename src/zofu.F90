@@ -47,6 +47,7 @@ module zofu
      private
      type(test_counter_type), public :: cases !! Test case counter
      type(test_counter_type), public :: assertions !! Test assertions counter
+     type(test_counter_type), public :: case_assertions !! Test assertions counter for current case
      real :: default_relative_tol !! Relative tolerance for testing floating point equality
      real :: minimum_scale !! Minimum scale for testing floating point equality
      character(:), allocatable :: case_name !! Name of last case run
@@ -151,6 +152,7 @@ contains
 
     class(test_counter_type), intent(in out) :: self
 
+    call self%add()
     self%passed = self%passed + 1
 
   end subroutine test_counter_pass
@@ -162,6 +164,7 @@ contains
 
     class(test_counter_type), intent(in out) :: self
 
+    call self%add()
     self%failed = self%failed + 1
 
   end subroutine test_counter_fail
@@ -227,7 +230,7 @@ contains
     class(unit_test_type), intent(in out) :: self
     character(len = *), intent(in), optional :: case_name
 
-    call self%cases%add()
+    call self%case_assertions%init()
 
     if (present(case_name)) then
        self%case_name = case_name
@@ -260,19 +263,10 @@ contains
     class(unit_test_type), intent(in out) :: self
     procedure(test_case_routine) :: test_case
     character(len = *), intent(in), optional :: case_name
-    ! Locals:
-    type(test_counter_type) :: start_assertions
 
     call self%start_case(case_name)
-    start_assertions = self%assertions
-
     call test_case(self)
-
-    if (self%assertions%failed > start_assertions%failed) then
-       call self%cases%fail()
-    else
-       call self%cases%pass()
-    end if
+    call self%end_case()
 
   end subroutine unit_test_run
 
@@ -297,8 +291,8 @@ contains
     !! Process passed assertion.
     class(unit_test_type), intent(in out) :: self
 
-    call self%assertions%add()
     call self%assertions%pass()
+    call self%case_assertions%pass()
 
   end subroutine unit_test_pass_assertion
 
@@ -335,8 +329,8 @@ contains
     ! Locals:
     character(:), allocatable :: msg
 
-    call self%assertions%add()
     call self%assertions%fail()
+    call self%case_assertions%fail()
 
     msg = self%fail_assertion_message(name)
     write(*, '(a)') '- {' // trim(msg) // '}'
