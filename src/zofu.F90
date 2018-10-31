@@ -261,14 +261,14 @@ contains
 
 !------------------------------------------------------------------------
 
-  function unit_test_yaml(self, cases, assertions) result(yaml)
-    !! Writes YAML summary of specified case and assertion counters.
+  function unit_test_yaml(self, assertions) result(yaml)
+    !! Returns YAML summary of test, with specified assertion counter.
 
     class(unit_test_type), intent(in) :: self
-    type(test_counter_type), intent(in) :: cases, assertions
+    type(test_counter_type), intent(in) :: assertions
     character(:), allocatable :: yaml
 
-    yaml = '{"cases": ' // cases%yaml() // ', ' // &
+    yaml = '{"cases": ' // self%cases%yaml() // ', ' // &
          '"assertions": ' // assertions%yaml() // '}'
 
   end function unit_test_yaml
@@ -280,7 +280,7 @@ contains
 
     class(unit_test_type), intent(in) :: self
 
-    write(*, '(a)') self%yaml(self%cases, self%assertions)
+    write(*, '(a)') self%yaml(self%assertions)
 
   end subroutine unit_test_summary
 

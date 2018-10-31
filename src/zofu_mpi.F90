@@ -93,7 +93,7 @@ contains
     call mpi_comm_rank(MPI_COMM_WORLD, rank, ierr)
     global_assertions = self%global_assertions()
     if (rank == 0) then
-       write(*, '(a)') self%yaml(self%cases, global_assertions)
+       write(*, '(a)') self%yaml(global_assertions)
     end if
 
   end subroutine unit_test_mpi_summary
