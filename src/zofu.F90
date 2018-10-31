@@ -39,6 +39,7 @@ module zofu
      procedure, public :: fail => test_counter_fail
      procedure :: test_counter_assign
      generic, public :: assignment(=) => test_counter_assign
+     procedure, public :: yaml => test_counter_yaml
   end type test_counter_type
 
   type, public :: unit_test_type
@@ -179,6 +180,25 @@ contains
   end subroutine test_counter_assign
 
 !------------------------------------------------------------------------
+
+  function test_counter_yaml(self) result(yaml)
+    !! Returns YAML string summarising counter contents.
+
+    class(test_counter_type), intent(in) :: self
+    character(:), allocatable :: yaml
+    ! Locals:
+    character(len = 16) :: istr
+
+    write(istr, '(i0)') self%count
+    yaml = '{"count": ' // trim(istr)
+    write(istr, '(i0)') self%passed
+    yaml = yaml // ', "passed": ' // trim(istr)
+    write(istr, '(i0)') self%failed
+    yaml = yaml // ', "failed": ' // trim(istr) // '}'
+
+  end function test_counter_yaml
+
+!------------------------------------------------------------------------
 ! Unit test methods:
 !------------------------------------------------------------------------
 
@@ -247,11 +267,9 @@ contains
 
     class(unit_test_type), intent(in out) :: self
 
-    write (*,'(a, i0, a, a, i0, a, a, i0, a, a, i0, a)') &
-         '{"cases": ', self%cases%count, ', ', &
-         '"assertions": ', self%assertions%count, ', ', &
-         '"passed": ', self%assertions%passed, ', ', &
-         '"failed": ', self%assertions%failed, '}'
+    write(*, '(a)') &
+         '{"cases": ' // self%cases%yaml() // ', ' // &
+         '"assertions": ' // self%assertions%yaml() // '}'
 
   end subroutine unit_test_summary
 
