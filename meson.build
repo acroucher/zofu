@@ -37,3 +37,17 @@ foreach test_module: test_modules
     link_with: zofu)
   test(test_module, test_exe)
 endforeach
+
+if mpi.found()
+  mpi_test_modules = ['test_mpi']
+  foreach test_module: mpi_test_modules
+    test_exe = executable(
+      test_module,
+      [join_paths(test_src_dir, test_module + '.F90'),
+       join_paths(test_src_dir, 'check_mpi.F90')],
+      fortran_args: f_args,
+      link_with: zofu,
+      dependencies: mpi)
+    test(test_module, test_exe, is_parallel: false)
+  endforeach
+endif
