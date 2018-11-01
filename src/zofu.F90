@@ -47,6 +47,7 @@ module zofu
      type(test_counter_type), public :: cases !! Test case counter
      type(test_counter_type), public :: assertions !! Test assertions counter
      type(test_counter_type), public :: case_assertions !! Test assertions counter for current case
+     logical, public :: passed, failed !! Whether test passed or failed
      real :: default_relative_tol !! Relative tolerance for testing floating point equality
      real :: minimum_scale !! Minimum scale for testing floating point equality
      character(:), allocatable :: case_name !! Name of last case run
@@ -214,6 +215,8 @@ contains
 
     call self%cases%init()
     call self%assertions%init()
+    self%passed = .true.
+    self%failed = .false.
 
     self%default_relative_tol = default_relative_tol
     self%minimum_scale = default_minimum_scale
@@ -247,9 +250,11 @@ contains
 
     if (self%case_assertions%failed > 0) then
        call self%cases%fail()
+       self%failed = .true.
     else
        call self%cases%pass()
     end if
+    self%passed = .not. (self%failed)
 
   end subroutine unit_test_end_case
 
