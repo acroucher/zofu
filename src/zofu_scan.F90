@@ -156,7 +156,7 @@ contains
 ! Test module methods:
 !------------------------------------------------------------------------
 
-  subroutine test_module_init(self, filename, mpi)
+  integer function test_module_init(self, filename, mpi) result(ierr)
     !! Initialises test module, reading from the specified filename.
     !! The optional mpi parameter specifies whether the test module is
     !! parallelized using MPI (default false).
@@ -180,9 +180,9 @@ contains
     self%teardown = .false.
     call self%test_subroutines%init()
 
-    call self%parse()
+    ierr = self%parse()
 
-  end subroutine test_module_init
+  end function test_module_init
 
 !------------------------------------------------------------------------
 
@@ -322,19 +322,22 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine test_module_parse(self)
-    !! Parses subroutines in a test module.
+  integer function test_module_parse(self) result(ierr)
+    !! Parses subroutines in a test module. Returns non-zero error
+    !! code if an error occurred while opening the file.
 
     class(test_module_type), intent(in out) :: self
 
-    open(newunit = self%unit, file = self%filename, status = 'old')
+    open(newunit = self%unit, file = self%filename, &
+         status = 'old', iostat = ierr)
 
-    call self%parse_name()
-    call self%parse_subroutines()
+    if (ierr == 0) then
+       call self%parse_name()
+       call self%parse_subroutines()
+       close(self%unit)
+    end if
 
-    close(self%unit)
-
-  end subroutine test_module_parse
+  end function test_module_parse
 
 !------------------------------------------------------------------------
 

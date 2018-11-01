@@ -5,7 +5,7 @@ program zofu_driver
   use str_utils
 
   implicit none
-  integer :: num_args
+  integer :: num_args, ierr
   character(:), allocatable :: module_filename, driver_filename, mpi_str
   type(test_module_type) :: test_module
   logical :: use_mpi
@@ -34,9 +34,13 @@ program zofu_driver
         use_mpi = .false.
      end if
 
-     call test_module%init(module_filename, use_mpi)
-     call test_module%write_driver(driver_filename)
-     call test_module%destroy()
+     ierr = test_module%init(module_filename, use_mpi)
+     if (ierr == 0) then
+        call test_module%write_driver(driver_filename)
+        call test_module%destroy()
+     else
+        stop "Error opening module file " // module_filename // "."
+     end if
 
   end if
 

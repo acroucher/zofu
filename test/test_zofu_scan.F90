@@ -57,7 +57,7 @@ contains
 !------------------------------------------------------------------------
 
   subroutine module_test(test, filename, module_name, num_subroutines, &
-       setup, teardown)
+       setup, teardown, err)
     ! Test a module
 
     class(unit_test_type), intent(in out) :: test
@@ -65,15 +65,18 @@ contains
     character(len = *), intent(in) :: module_name
     integer, intent(in) :: num_subroutines
     logical, intent(in) :: setup, teardown
+    integer, intent(in) :: err
     ! Locals:
-    type(test_module_type) :: mod
+    type(test_module_type) :: test_module
+    integer :: ierr
 
-    call mod%init(filename)
-    call test%assert(mod%name, module_name, filename // " name")
-    call test%assert(mod%test_subroutines%count, num_subroutines, &
+    ierr = test_module%init(filename)
+    call test%assert(ierr, err, filename // " error")
+    call test%assert(test_module%name, module_name, filename // " name")
+    call test%assert(test_module%test_subroutines%count, num_subroutines, &
          filename // " subroutine count")
-    call test%assert(mod%setup, setup, filename // " setup")
-    call test%assert(mod%teardown, teardown, filename // " teardown")
+    call test%assert(test_module%setup, setup, filename // " setup")
+    call test%assert(test_module%teardown, teardown, filename // " teardown")
     
   end subroutine module_test
 
@@ -85,7 +88,7 @@ contains
     class(unit_test_type), intent(in out) :: test
 
     call module_test(test, "adder_test.F90", "adder_test", 5, &
-         .false., .false.)
+         .false., .false., 0)
     
   end subroutine test_modules
     
