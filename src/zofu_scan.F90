@@ -354,7 +354,7 @@ contains
     if (use_mpi) then
        write(unit, '(a)') "  use zofu_mpi"
     end if
-    write(unit, *)
+    write(unit, '(a, a/)') "  use ", self%name
 
     write(unit, '(a/)') "  implicit none"
     if (use_mpi) then
