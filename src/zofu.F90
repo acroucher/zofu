@@ -19,6 +19,8 @@ module zofu
 
   !! Zofu (Zofu is Object-oriented Fortran Unit-testing) unit test type.
 
+  use str_utils
+
   implicit none
   private
 
@@ -116,19 +118,6 @@ module zofu
   end interface
 
 contains
-
-!------------------------------------------------------------------------
-! String handling functions:
-!------------------------------------------------------------------------
-
-  logical elemental function str_equal(a, b)
-    !! Tests if two character strings are equal.
-
-    character(len = *), intent(in) :: a, b
-
-    str_equal = (trim(adjustl(a)) == trim(adjustl(b)))
-
-  end function str_equal
 
 !------------------------------------------------------------------------
 ! Test counter methods:
