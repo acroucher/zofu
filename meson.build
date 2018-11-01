@@ -10,10 +10,15 @@ endif
 
 mpi = dependency('mpi', language: 'fortran', required: false)
 
-zofu_sources = [join_paths('src', 'zofu.F90')]
+src_dir = join_paths(meson.current_source_dir(), 'src')
+zofu_modules = ['zofu.F90', 'str_utils.F90']
 if mpi.found()
-  zofu_sources += [join_paths('src', 'zofu_mpi.F90')]
+  zofu_modules += ['zofu_mpi.F90']
 endif
+zofu_sources = []
+foreach m: zofu_modules
+  zofu_sources += [join_paths(src_dir, m)]
+endforeach
 
 zofu = shared_library('zofu',
                       zofu_sources,
@@ -21,8 +26,15 @@ zofu = shared_library('zofu',
                       dependencies: mpi,
                       install: true)
 
-# Tests:
-test_modules = ['test_logical_asserts',
+# zofu_driver_modules = ['zofu_scan.F90']
+# zofu_driver_sources = []
+# foreach m: zofu_driver_modules
+#   zofu_driver_sources += [join_paths(src_dir, m)]
+# endforeach
+
+# Zofu tests:
+test_modules = ['test_str_utils',
+                'test_logical_asserts',
                 'test_integer_asserts',
                 'test_real_asserts',
                 'test_double_asserts',
@@ -52,3 +64,20 @@ if mpi.found()
     test(test_module, test_exe, is_parallel: false)
   endforeach
 endif
+
+# Zofu scan tests:
+  datafiles = ['adder_test.F90']
+  foreach f: datafiles
+    configure_file(
+      input: join_paths(meson.current_source_dir(), 'test', 'data', f),
+      output: f, copy: true)
+  endforeach
+
+test_module = 'test_zofu_scan'
+test_exe = executable(
+  test_module,
+  [join_paths(test_src_dir, test_module + '.F90'),
+   join_paths(src_dir, 'zofu_scan.F90')],
+  fortran_args: f_args,
+  link_with: zofu)
+test(test_module, test_exe)
