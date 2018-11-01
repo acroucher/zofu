@@ -65,13 +65,13 @@ contains
     character(len = *), intent(in) :: module_name
     integer, intent(in) :: num_subroutines
     logical, intent(in) :: setup, teardown
-    integer, intent(in) :: err
+    logical, intent(in) :: err
     ! Locals:
     type(test_module_type) :: test_module
     integer :: ierr
 
     ierr = test_module%init(filename)
-    call test%assert(ierr, err, filename // " error")
+    call test%assert(ierr /= 0, err, filename // " error")
     call test%assert(test_module%name, module_name, filename // " name")
     call test%assert(test_module%test_subroutines%count, num_subroutines, &
          filename // " subroutine count")
@@ -88,7 +88,9 @@ contains
     class(unit_test_type), intent(in out) :: test
 
     call module_test(test, "adder_test.F90", "adder_test", 5, &
-         .false., .false., 0)
+         .false., .false., .false.)
+    call module_test(test, "missing.F90", "", 0, &
+         .false., .false., .true.)
     
   end subroutine test_modules
     
