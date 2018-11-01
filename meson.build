@@ -26,11 +26,18 @@ zofu = shared_library('zofu',
                       dependencies: mpi,
                       install: true)
 
-# zofu_driver_modules = ['zofu_scan.F90']
-# zofu_driver_sources = []
-# foreach m: zofu_driver_modules
-#   zofu_driver_sources += [join_paths(src_dir, m)]
-# endforeach
+zofu_driver_modules = ['zofu_driver.F90', 'zofu_scan.F90']
+zofu_driver_sources = []
+foreach m: zofu_driver_modules
+  zofu_driver_sources += [join_paths(src_dir, m)]
+endforeach
+
+driver_exe = executable(
+  'zofu-driver',
+  zofu_driver_sources,
+  fortran_args: f_args,
+  link_with: zofu,
+  install: true)
 
 # Zofu tests:
 test_modules = ['test_str_utils',
