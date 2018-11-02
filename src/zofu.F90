@@ -57,6 +57,7 @@ module zofu
      procedure, public :: init => unit_test_init
      procedure, public :: run => unit_test_run
      procedure, public :: summary => unit_test_summary
+     procedure :: init_counters => unit_test_init_counters
      procedure :: write_yaml => unit_test_write_yaml
      procedure :: start_case => unit_test_start_case
      procedure :: end_case => unit_test_end_case
@@ -194,6 +195,20 @@ contains
 ! Unit test methods:
 !------------------------------------------------------------------------
 
+  subroutine unit_test_init_counters(self)
+    !! Initializes counters for cases and assertions, and writes
+    !! header for YAML list of failed assertions.
+
+    class(unit_test_type), intent(in out) :: self
+
+    call self%cases%init()
+    call self%assertions%init()
+    write(*,'(a)') 'failed assertions:'
+
+  end subroutine unit_test_init_counters
+
+!------------------------------------------------------------------------
+
   subroutine unit_test_init(self)
     !! Initialise unit test.
 
@@ -202,10 +217,9 @@ contains
     real, parameter :: default_relative_tol = 1.e-6
     real, parameter :: default_minimum_scale = 1.e-6
 
-    call self%cases%init()
-    call self%assertions%init()
     self%passed = .true.
     self%failed = .false.
+    call self%init_counters()
 
     self%default_relative_tol = default_relative_tol
     self%minimum_scale = default_minimum_scale

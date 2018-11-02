@@ -29,6 +29,7 @@ module zofu_mpi
   type, public, extends(unit_test_type) :: unit_test_mpi_type
      !! Type for unit test parallelized using MPI.
    contains
+     procedure :: init_counters => unit_test_mpi_init_counters
      procedure :: end_case => unit_test_mpi_end_case
      procedure :: global_assertions => unit_test_global_assertions
      procedure, public :: summary => unit_test_mpi_summary
@@ -36,6 +37,26 @@ module zofu_mpi
   end type unit_test_mpi_type
 
 contains
+
+!------------------------------------------------------------------------
+
+  subroutine unit_test_mpi_init_counters(self)
+    !! Initializes counters for cases and assertions, and writes
+    !! header for YAML list of failed assertions, for MPI test.
+
+    class(unit_test_mpi_type), intent(in out) :: self
+    ! Locals:
+    integer :: rank, ierr
+
+    call mpi_comm_rank(MPI_COMM_WORLD, rank, ierr)
+
+    call self%cases%init()
+    call self%assertions%init()
+    if (rank == 0) then
+       write(*,'(a)') 'failed assertions:'
+    end if
+
+  end subroutine unit_test_mpi_init_counters
 
 !------------------------------------------------------------------------
 
