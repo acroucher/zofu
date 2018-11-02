@@ -270,8 +270,17 @@ contains
     class(unit_test_type), intent(in) :: self
     type(test_counter_type), intent(in) :: assertions !! Assertions counter
     character(:), allocatable :: yaml
+    ! Locals:
+    character(5) :: pass_str
 
-    yaml = '{"cases": ' // self%cases%yaml() // ', ' // &
+    if (self%passed) then
+       pass_str = 'true'
+    else
+       pass_str = 'false'
+    end if
+
+    yaml = '{"passed": ' // trim(adjustl(pass_str)) // ', ' // &
+         '"cases": ' // self%cases%yaml() // ', ' // &
          '"assertions": ' // assertions%yaml() // '}'
 
   end function unit_test_yaml
