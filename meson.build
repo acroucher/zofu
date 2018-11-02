@@ -11,7 +11,7 @@ endif
 mpi = dependency('mpi', language: 'fortran', required: false)
 
 src_dir = join_paths(meson.current_source_dir(), 'src')
-zofu_modules = ['zofu.F90', 'str_utils.F90']
+zofu_modules = ['zofu.F90', 'str_utils.F90', 'zofu_scan.F90']
 if mpi.found()
   zofu_modules += ['zofu_mpi.F90']
 endif
@@ -26,15 +26,9 @@ zofu = shared_library('zofu',
                       dependencies: mpi,
                       install: true)
 
-zofu_driver_modules = ['zofu_driver.F90', 'zofu_scan.F90']
-zofu_driver_sources = []
-foreach m: zofu_driver_modules
-  zofu_driver_sources += [join_paths(src_dir, m)]
-endforeach
-
 driver_exe = executable(
   'zofu-driver',
-  zofu_driver_sources,
+  join_paths(src_dir, 'zofu_driver.F90'),
   fortran_args: f_args,
   link_with: zofu,
   install: true)
@@ -83,8 +77,7 @@ endif
 test_module = 'test_zofu_scan'
 test_exe = executable(
   test_module,
-  [join_paths(test_src_dir, test_module + '.F90'),
-   join_paths(src_dir, 'zofu_scan.F90')],
+  join_paths(test_src_dir, test_module + '.F90'),
   fortran_args: f_args,
   link_with: zofu)
 test(test_module, test_exe)
