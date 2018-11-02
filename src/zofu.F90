@@ -162,8 +162,8 @@ contains
   subroutine test_counter_assign(dest, source)
     !! Assigns one test counter to another.
 
-    class(test_counter_type), intent(out) :: dest
-    type(test_counter_type), intent(in) :: source
+    class(test_counter_type), intent(out) :: dest !! Destination counter
+    type(test_counter_type), intent(in) :: source !! Source counter
 
     dest%count = source%count
     dest%passed = source%passed
@@ -218,7 +218,7 @@ contains
     !! Starts new test case.
 
     class(unit_test_type), intent(in out) :: self
-    character(len = *), intent(in), optional :: case_name
+    character(len = *), intent(in), optional :: case_name !! Name of test case
 
     call self%case_assertions%init()
 
@@ -253,8 +253,8 @@ contains
     !! Runs test case.
     
     class(unit_test_type), intent(in out) :: self
-    procedure(test_case_routine) :: test_case
-    character(len = *), intent(in), optional :: case_name
+    procedure(test_case_routine) :: test_case !! Test case subroutine
+    character(len = *), intent(in), optional :: case_name !! Name of test case
 
     call self%start_case(case_name)
     call test_case(self)
@@ -268,7 +268,7 @@ contains
     !! Returns YAML summary of test, with specified assertion counter.
 
     class(unit_test_type), intent(in) :: self
-    type(test_counter_type), intent(in) :: assertions
+    type(test_counter_type), intent(in) :: assertions !! Assertions counter
     character(:), allocatable :: yaml
 
     yaml = '{"cases": ' // self%cases%yaml() // ', ' // &
@@ -306,7 +306,7 @@ contains
     !! Return YAML string for failed assertion message.
 
     class(unit_test_type), intent(in) :: self
-    character(len = *), intent(in), optional :: name
+    character(len = *), intent(in), optional :: name !! Assertion name
     character(:), allocatable :: msg
     ! Locals:
     character(len = 32) :: case_num_str
@@ -329,7 +329,7 @@ contains
   subroutine unit_test_fail_assertion(self, name)
     !! Process failed assertion.
     class(unit_test_type), intent(in out) :: self
-    character(len = *), intent(in), optional :: name
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assertions%fail()
     call self%case_assertions%fail()
@@ -349,8 +349,8 @@ contains
     !! default value is used.
 
     class(unit_test_type), intent(in) :: self
-    real, intent(in) :: a, b
-    real, intent(in), optional :: tol
+    real, intent(in) :: a, b !! Value to compare
+    real, intent(in), optional :: tol !! Tolerance
     ! Locals:
     real :: tolerance
 
@@ -379,8 +379,8 @@ contains
     !! test default value is used.
 
     class(unit_test_type), intent(in) :: self
-    real(dp), intent(in) :: a, b
-    real(dp), intent(in), optional :: tol
+    real(dp), intent(in) :: a, b !! Value to compare
+    real(dp), intent(in), optional :: tol !! Tolerance
     ! Locals:
     real(dp) :: tolerance
 
@@ -409,8 +409,8 @@ contains
     !! default value is used.
 
     class(unit_test_type), intent(in) :: self
-    complex, intent(in) :: a, b
-    real, intent(in), optional :: tol
+    complex, intent(in) :: a, b !! Value to compare
+    real, intent(in), optional :: tol !! Tolerance
     ! Locals:
     real :: tolerance
 
@@ -438,8 +438,8 @@ contains
     !! Assert specified condition is true.
 
     class(unit_test_type), intent(in out) :: self
-    logical, intent(in) :: condition
-    character(len = *), intent(in), optional :: name
+    logical, intent(in) :: condition !! Value to assert
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     if (condition) then
        call self%pass_assertion()
@@ -455,8 +455,8 @@ contains
     !! Assert specified logicals are equal.
 
     class(unit_test_type), intent(in out) :: self
-    logical, intent(in) :: a, b
-    character(len = *), intent(in), optional :: name
+    logical, intent(in) :: a, b !! Value to compare
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(a .eqv. b, name)
 
@@ -468,8 +468,8 @@ contains
     !! Assert specified rank-1 logical arrays are equal.
 
     class(unit_test_type), intent(in out) :: self
-    logical, intent(in) :: a(:), b(:)
-    character(len = *), intent(in), optional :: name
+    logical, intent(in) :: a(:), b(:) !! Value to compare
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(all(a .eqv. b), name)
 
@@ -481,8 +481,8 @@ contains
     !! Assert specified rank-2 logical arrays are equal.
 
     class(unit_test_type), intent(in out) :: self
-    logical, intent(in) :: a(:,:), b(:,:)
-    character(len = *), intent(in), optional :: name
+    logical, intent(in) :: a(:,:), b(:,:) !! Value to compare
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(all(a .eqv. b), name)
 
@@ -496,8 +496,8 @@ contains
     !! Assert specified integers are equal.
 
     class(unit_test_type), intent(in out) :: self
-    integer, intent(in) :: a, b
-    character(len = *), intent(in), optional :: name
+    integer, intent(in) :: a, b !! Value to compare
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(a == b, name)
 
@@ -509,8 +509,8 @@ contains
     !! Assert specified rank-1 integer arrays are equal.
 
     class(unit_test_type), intent(in out) :: self
-    integer, intent(in) :: a(:), b(:)
-    character(len = *), intent(in), optional :: name
+    integer, intent(in) :: a(:), b(:) !! Value to compare
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(all(a == b), name)
 
@@ -522,8 +522,8 @@ contains
     !! Assert specified rank-2 integer arrays are equal.
 
     class(unit_test_type), intent(in out) :: self
-    integer, intent(in) :: a(:,:), b(:,:)
-    character(len = *), intent(in), optional :: name
+    integer, intent(in) :: a(:,:), b(:,:) !! Value to compare
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(all(a == b), name)
 
@@ -539,9 +539,9 @@ contains
     !! default value is used.
 
     class(unit_test_type), intent(in out) :: self
-    real, intent(in) :: a, b
-    real, intent(in), optional :: tol
-    character(len = *), intent(in), optional :: name
+    real, intent(in) :: a, b !! Value to compare
+    real, intent(in), optional :: tol !! Tolerance
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(self%equal_tol(a, b, tol), name)
 
@@ -555,9 +555,9 @@ contains
     !! test default value is used.
 
     class(unit_test_type), intent(in out) :: self
-    real, intent(in) :: a(:), b(:)
-    real, intent(in), optional :: tol
-    character(len = *), intent(in), optional :: name
+    real, intent(in) :: a(:), b(:) !! Value to compare
+    real, intent(in), optional :: tol !! Tolerance
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(all(self%equal_tol(a, b, tol)), name)
 
@@ -571,9 +571,9 @@ contains
     !! test default value is used.
 
     class(unit_test_type), intent(in out) :: self
-    real, intent(in) :: a(:,:), b(:,:)
-    real, intent(in), optional :: tol
-    character(len = *), intent(in), optional :: name
+    real, intent(in) :: a(:,:), b(:,:) !! Value to compare
+    real, intent(in), optional :: tol !! Tolerance
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(all(self%equal_tol(a, b, tol)), name)
 
@@ -589,9 +589,9 @@ contains
     !! the test default value is used.
 
     class(unit_test_type), intent(in out) :: self
-    real(dp), intent(in) :: a, b
-    real(dp), intent(in), optional :: tol
-    character(len = *), intent(in), optional :: name
+    real(dp), intent(in) :: a, b !! Value to compare
+    real(dp), intent(in), optional :: tol !! Tolerance
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(self%equal_tol(a, b, tol), name)
 
@@ -605,9 +605,9 @@ contains
     !! specified, the test default value is used.
 
     class(unit_test_type), intent(in out) :: self
-    real(dp), intent(in) :: a(:), b(:)
-    real(dp), intent(in), optional :: tol
-    character(len = *), intent(in), optional :: name
+    real(dp), intent(in) :: a(:), b(:) !! Value to compare
+    real(dp), intent(in), optional :: tol !! Tolerance
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(all(self%equal_tol(a, b, tol)), name)
 
@@ -621,9 +621,9 @@ contains
     !! specified, the test default value is used.
 
     class(unit_test_type), intent(in out) :: self
-    real(dp), intent(in) :: a(:,:), b(:,:)
-    real(dp), intent(in), optional :: tol
-    character(len = *), intent(in), optional :: name
+    real(dp), intent(in) :: a(:,:), b(:,:) !! Value to compare
+    real(dp), intent(in), optional :: tol !! Tolerance
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(all(self%equal_tol(a, b, tol)), name)
 
@@ -639,9 +639,9 @@ contains
     !! test default value is used.
 
     class(unit_test_type), intent(in out) :: self
-    complex, intent(in) :: a, b
-    real, intent(in), optional :: tol
-    character(len = *), intent(in), optional :: name
+    complex, intent(in) :: a, b !! Value to compare
+    real, intent(in), optional :: tol !! Tolerance
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(self%equal_tol(a, b, tol), name)
 
@@ -655,9 +655,9 @@ contains
     !! test default value is used.
 
     class(unit_test_type), intent(in out) :: self
-    complex, intent(in) :: a(:), b(:)
-    real, intent(in), optional :: tol
-    character(len = *), intent(in), optional :: name
+    complex, intent(in) :: a(:), b(:) !! Value to compare
+    real, intent(in), optional :: tol !! Tolerance
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(all(self%equal_tol(a, b, tol)), name)
 
@@ -671,9 +671,9 @@ contains
     !! test default value is used.
 
     class(unit_test_type), intent(in out) :: self
-    complex, intent(in) :: a(:,:), b(:,:)
-    real, intent(in), optional :: tol
-    character(len = *), intent(in), optional :: name
+    complex, intent(in) :: a(:,:), b(:,:) !! Value to compare
+    real, intent(in), optional :: tol !! Tolerance
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(all(self%equal_tol(a, b, tol)), name)
 
@@ -686,8 +686,8 @@ contains
   subroutine unit_test_assert_equal_string(self, a, b, name)
     !! Assert specified strings are equal.
     class(unit_test_type), intent(in out) :: self
-    character(len = *), intent(in) :: a, b
-    character(len = *), intent(in), optional :: name
+    character(len = *), intent(in) :: a, b !! Value to compare
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(str_equal(a, b), name)
 
@@ -699,8 +699,8 @@ contains
     !! Assert specified rank-1 string arrays are equal.
 
     class(unit_test_type), intent(in out) :: self
-    character(len = *), intent(in) :: a(:), b(:)
-    character(len = *), intent(in), optional :: name
+    character(len = *), intent(in) :: a(:), b(:) !! Value to compare
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(all(str_equal(a, b)), name)
 
@@ -712,8 +712,8 @@ contains
     !! Assert specified rank-2 string arrays are equal.
 
     class(unit_test_type), intent(in out) :: self
-    character(len = *), intent(in) :: a(:,:), b(:,:)
-    character(len = *), intent(in), optional :: name
+    character(len = *), intent(in) :: a(:,:), b(:,:) !! Value to compare
+    character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(all(str_equal(a, b)), name)
 
