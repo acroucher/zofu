@@ -240,10 +240,10 @@ contains
     if (self%case_assertions%failed > 0) then
        call self%cases%fail()
        self%failed = .true.
+       self%passed = .not. (self%failed)
     else
        call self%cases%pass()
     end if
-    self%passed = .not. (self%failed)
 
   end subroutine unit_test_end_case
 

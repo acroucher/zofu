@@ -54,6 +54,8 @@ contains
 
     if (global_case_failure) then
        call self%cases%fail()
+       self%failed = .true.
+       self%passed = .not. (self%failed)
     else
        call self%cases%pass()
     end if
