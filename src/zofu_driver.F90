@@ -6,7 +6,8 @@ program zofu_driver
 
   implicit none
   integer :: num_args, ierr
-  character(:), allocatable :: module_filename, driver_filename, mpi_str
+  integer, parameter :: max_argument_length = 256
+  character(len = max_argument_length) :: module_filename, driver_filename, mpi_str
   type(test_module_type) :: test_module
   logical :: use_mpi
 
@@ -24,11 +25,12 @@ program zofu_driver
 
   else
 
-     module_filename = get_argument(1)
-     driver_filename = get_argument(2)
+     call get_command_argument(1, value = module_filename)
+     call get_command_argument(2, value = driver_filename)
 
      if (num_args == 3) then
-        mpi_str = get_argument(3)
+
+        call get_command_argument(3, value = mpi_str)
         use_mpi = str_equal(mpi_str, "--mpi")
      else
         use_mpi = .false.
@@ -43,22 +45,5 @@ program zofu_driver
      end if
 
   end if
-
-contains
-
-  function get_argument(number) result(arg)
-    !! Reads command line argument with specified number into an
-    !! allocatable character variable.
-
-    integer, intent(in) :: number
-    character(:), allocatable :: arg
-    ! Locals:
-    integer :: arg_length
-
-    call get_command_argument(number, length = arg_length)
-    allocate(character(arg_length):: arg)
-    call get_command_argument(number, value = arg)
-
-  end function get_argument
 
 end program zofu_driver
