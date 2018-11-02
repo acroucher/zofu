@@ -57,7 +57,7 @@ module zofu
      procedure, public :: init => unit_test_init
      procedure, public :: run => unit_test_run
      procedure, public :: summary => unit_test_summary
-     procedure :: yaml => unit_test_yaml
+     procedure :: write_yaml => unit_test_write_yaml
      procedure :: start_case => unit_test_start_case
      procedure :: end_case => unit_test_end_case
      procedure :: pass_assertion => unit_test_pass_assertion
@@ -264,12 +264,11 @@ contains
 
 !------------------------------------------------------------------------
 
-  function unit_test_yaml(self, assertions) result(yaml)
-    !! Returns YAML summary of test, with specified assertion counter.
+  subroutine unit_test_write_yaml(self, assertions)
+    !! Writes YAML summary of test, with specified assertion counter.
 
     class(unit_test_type), intent(in) :: self
     type(test_counter_type), intent(in) :: assertions !! Assertions counter
-    character(:), allocatable :: yaml
     ! Locals:
     character(5) :: pass_str
 
@@ -279,11 +278,11 @@ contains
        pass_str = 'false'
     end if
 
-    yaml = '{"passed": ' // trim(adjustl(pass_str)) // ', ' // &
-         '"cases": ' // self%cases%yaml() // ', ' // &
-         '"assertions": ' // assertions%yaml() // '}'
+    write(*,'(a, a)') 'cases: ', self%cases%yaml()
+    write(*,'(a, a)') 'assertions: ', assertions%yaml()
+    write(*,'(a, a)') 'passed: ', trim(adjustl(pass_str))
 
-  end function unit_test_yaml
+  end subroutine unit_test_write_yaml
 
 !------------------------------------------------------------------------
 
@@ -292,7 +291,7 @@ contains
 
     class(unit_test_type), intent(in) :: self
 
-    write(*, '(a)') self%yaml(self%assertions)
+    call self%write_yaml(self%assertions)
 
   end subroutine unit_test_summary
 
