@@ -198,7 +198,7 @@ contains
 !------------------------------------------------------------------------
 
   subroutine test_module_parse_name(self)
-    !! Parses for name of tes module.
+    !! Parses for name of test module.
 
     class(test_module_type), intent(in out) :: self
     ! Locals:
