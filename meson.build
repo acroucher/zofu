@@ -73,7 +73,7 @@ if mpi.found()
 endif
 
 # Zofu scan tests:
-  datafiles = ['adder.F90', 'adder_test.F90', 'adder_setup_test.F90']
+  datafiles = ['adder_test.F90', 'adder_setup_test.F90']
   foreach f: datafiles
     configure_file(
       input: join_paths(meson.current_source_dir(), 'test', 'data', f),
