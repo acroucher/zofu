@@ -144,7 +144,7 @@ ninja -C build
 By default, a debug build is performed. If you want an optimized release build, you can specify the build type at configuration time, e.g.:
 
 ```
-meson build --buildtype release
+meson build --buildtype=release
 ```
 
 You can install Zofu as follows:
@@ -156,7 +156,7 @@ ninja -C build install
 By default this will install Zofu to a standard location, e.g. `/usr/local/lib` on Linux (for which you will generally need administrator privileges) . If you want to install it somewhere else, you can specify a 'prefix' using the `--prefix` and `--libdir` options at configure time, e.g.:
 
 ```
-meson build --prefix /home/bob/ --libdir lib
+meson build --prefix=/home/bob/ --libdir=lib
 ```
 
 would install Zofu to `/home/bob/lib`.
