@@ -19,7 +19,7 @@ module zofu
 
   !! Zofu (Zofu is Object-oriented Fortran Unit-testing) unit test type.
 
-  use str_utils
+  use zofu_str_utils
 
   implicit none
   private

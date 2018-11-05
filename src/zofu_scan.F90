@@ -1,7 +1,7 @@
 module zofu_scan
   !! Module for scanning unit test module and writing a driver program for it.
 
-  use str_utils
+  use zofu_str_utils
 
   implicit none
   private

@@ -2,7 +2,7 @@ program test_str_utils
 
   ! Test Zofu string utilities.
 
-  use str_utils
+  use zofu_str_utils
 
   implicit none
   logical :: OK, test

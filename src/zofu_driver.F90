@@ -2,7 +2,7 @@ program zofu_driver
   !! Program for writing driver program for module of Zofu unit tests.
 
   use zofu_scan
-  use str_utils
+  use zofu_str_utils
 
   implicit none
   integer :: num_args, ierr

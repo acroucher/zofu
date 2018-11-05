@@ -1,4 +1,4 @@
-module str_utils
+module zofu_str_utils
   !! String handling utilities.
 
   implicit none
@@ -62,4 +62,4 @@ contains
 
 !------------------------------------------------------------------------
   
-end module str_utils
+end module zofu_str_utils
