@@ -37,9 +37,9 @@ driver_exe = executable(
   install: true,
   install_rpath: join_paths(prefix, libdir))
 
-install_modules = get_option('install_modules')
-if install_modules != ''
-  module_install_dir = join_paths(prefix, install_modules)
+includedir = get_option('includedir')
+if includedir != ''
+  module_install_dir = join_paths(prefix, includedir)
   zofu_objs = []
   foreach m: zofu_modules
     zofu_objs += [m + '.o']
@@ -52,7 +52,6 @@ if install_modules != ''
   pkg.generate(zofu,
                description: 'Zofu is Object-oriented Fortran Unit-testing')
 endif
-
 
 # Zofu tests:
 test_modules = ['test_str_utils',

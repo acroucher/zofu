@@ -147,7 +147,9 @@ Zofu can then be built using:
 ninja -C build
 ```
 
-and installed as follows:
+# Installing Zofu
+
+Zofu can be installed as follows:
 
 ```
 ninja -C build install
@@ -161,6 +163,11 @@ meson build --prefix=/home/bob/ --libdir=lib
 
 would configure Zofu to install into the `/home/bob/lib` directory.
 
+The Fortran module files (e.g. *.mod for the gfortran compiler) will also be installed (to make them available when building your test code), by default to the `include` subdirectory after the prefix. If you want to install the module files somewhere else, you can specify the `includedir` option at configure time, e.g.:
+
+```
+meson build --prefix=/home/bob/ --libdir=lib --includedir=finclude/zofu
+```
 
 Zofu will be built with MPI support (including the `zofu_mpi` module) if Meson detects that MPI is installed on your machine. There is no need to use a wrapper compiler (e.g. mpif90) to build it.
 

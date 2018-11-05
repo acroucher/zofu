@@ -1,1 +1,0 @@
-option('install_modules', type : 'string', value : 'include')
