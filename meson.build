@@ -10,6 +10,9 @@ endif
 
 mpi = dependency('mpi', language: 'fortran', required: false)
 
+prefix = get_option('prefix')
+libdir = get_option('libdir')
+
 src_dir = join_paths(meson.current_source_dir(), 'src')
 zofu_modules = ['zofu.F90', 'str_utils.F90', 'zofu_scan.F90']
 if mpi.found()
@@ -31,7 +34,8 @@ driver_exe = executable(
   join_paths(src_dir, 'zofu_driver.F90'),
   fortran_args: f_args,
   link_with: zofu,
-  install: true)
+  install: true,
+  install_rpath: join_paths(prefix, libdir))
 
 # Zofu tests:
 test_modules = ['test_str_utils',
