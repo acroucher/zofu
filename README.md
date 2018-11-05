@@ -135,19 +135,19 @@ A script (`meson.build`) is included for building Zofu using the [Meson](https:/
 meson build
 ```
 
-This will create and configure a build subdirectory called `build`. Zofu can then be built using:
-
-```
-ninja -C build
-```
-
-By default, a debug build is performed. If you want an optimized release build, you can specify the build type at configuration time, e.g.:
+This will create and configure a build subdirectory called `build`. By default, a debug build is performed. If you want an optimized release build, you can specify the build type at configuration time, e.g.:
 
 ```
 meson build --buildtype=release
 ```
 
-You can install Zofu as follows:
+Zofu can then be built using:
+
+```
+ninja -C build
+```
+
+and installed as follows:
 
 ```
 ninja -C build install
@@ -159,7 +159,7 @@ By default this will install Zofu to a standard location, e.g. `/usr/local/lib` 
 meson build --prefix=/home/bob/ --libdir=lib
 ```
 
-would install Zofu to `/home/bob/lib`.
+would configure Zofu to install into the `/home/bob/lib` directory.
 
 
 Zofu will be built with MPI support (including the `zofu_mpi` module) if Meson detects that MPI is installed on your machine. There is no need to use a wrapper compiler (e.g. mpif90) to build it.
