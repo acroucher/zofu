@@ -37,6 +37,23 @@ driver_exe = executable(
   install: true,
   install_rpath: join_paths(prefix, libdir))
 
+install_modules = get_option('install_modules')
+if install_modules != ''
+  module_install_dir = join_paths(prefix, install_modules)
+  zofu_objs = []
+  foreach m: zofu_modules
+    zofu_objs += [m + '.o']
+  endforeach
+  install_subdir(join_paths('build', 'zofu@sha'),
+                 install_dir: module_install_dir,
+                 strip_directory: true,
+                 exclude_files: zofu_objs)
+  pkg = import('pkgconfig')
+  pkg.generate(zofu,
+               description: 'Zofu is Object-oriented Fortran Unit-testing')
+endif
+
+
 # Zofu tests:
 test_modules = ['test_str_utils',
                 'test_logical_asserts',
