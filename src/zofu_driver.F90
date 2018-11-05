@@ -16,7 +16,7 @@ program zofu_driver
   if (num_args < 2) then
 
      write(*, '(a)') "Usage:"
-     write(*, '(a)') "  zofu-driver module driver [--mpi]"
+     write(*, '(a/)') "  zofu-driver module driver [--mpi]"
      write(*, '(a)') "  module: filename of test module"
      write(*, '(a/)') "  driver: filename for output test driver program"
      write(*, '(a)') "Options:"
