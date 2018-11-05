@@ -93,7 +93,7 @@ The driver program will also return a non-zero error code if the test failed (i.
 
 # Running multiple tests
 
-If a number of modules are to be tested, `zofu-driver` can build a separate driver program for each module. The tests can be run using a utility such as [meson test](https://mesonbuild.com/), which will run all the test driver programs and produce summary output for the whole suite of tests.
+If a number of modules are to be tested, `zofu-driver` can build a separate driver program for each module. The tests can be run using a utility such as [meson test](https://mesonbuild.com/Unit-tests.html), which will run all the test driver programs and produce summary output for the whole suite of tests.
 
 Some unit testing systems create a single driver program which runs all tests in multiple modules. While this is perhaps simpler, it has the disadvantage that if one test crashes, the entire suite of tests stops and no other tests can be run. By contrast, if there is a separate driver program for each test module, the suite of tests can continue to run in the event of one module crashing. This approach also allows individual modules to be tested without recompiling the test driver program.
 
