@@ -212,7 +212,13 @@ If your code and tests are parallelized using MPI, you can run the tests in para
 meson test --wrap='mpiexec -np 4'
 ```
 
-would run all the tests on four processes.
+would run all the tests on four processes. For MPI testing you should also declare your tests with the `is_parallel` option set to false, e.g.:
+
+```python
+test(test_name, unit_test, is_parallel: false)
+```
+
+otherwise Meson will by default attempt to run different tests on different processes at the same time.
 
 # Licensing
 
