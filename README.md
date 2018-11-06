@@ -63,10 +63,10 @@ For `real`, `double precision` or `complex` variables, equality is defined up to
 
 For character variables, leading and trailing blanks are ignored, but case is respected.
 
-The `assert()` method can also take a `name` argument. This is a character string with a description of the assertion, which is used for output of failed assertions. For example:
+The `assert()` method can also take an optional `name` argument. This is a character string with a description of the assertion, which is used for output of failed assertions. For example:
 
 ```fortran
-  call test%assert(x, y, 'test x = y')
+  call test%assert(x, y, name = 'test x = y')
 ```
 
 ### Setup and teardown routines
