@@ -188,8 +188,8 @@ If you are using Meson to build your code, you can add the tests to your build a
 ```python
 test_name = 'foo'
 
-test_src = file(join_paths(meson.current_source_dir(),
-             'test', 'src', test_name + '.F90'))
+test_src = join_paths(meson.current_source_dir(),
+             'test', 'src', test_name + '.F90')
 driver_src_name = test_name + '_driver.F90'
 
 test_driver_src = configure_file(
