@@ -147,6 +147,8 @@ Zofu can then be built using:
 ninja -C build
 ```
 
+Zofu will be built with MPI support (including the `zofu_mpi` module) if Meson detects that MPI is installed on your machine. There is no need to use a wrapper compiler (e.g. mpif90) to build it.
+
 # Installing Zofu
 
 Zofu can be installed as follows:
@@ -169,7 +171,7 @@ The Fortran module files (e.g. *.mod for the gfortran compiler) will also be ins
 meson build --prefix=/home/bob/ --libdir=lib --includedir=finclude/zofu
 ```
 
-Zofu will be built with MPI support (including the `zofu_mpi` module) if Meson detects that MPI is installed on your machine. There is no need to use a wrapper compiler (e.g. mpif90) to build it.
+Meson will also write a [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) file to make it easier for other software (e.g. your test driver programs) to link to Zofu. The pkg-config file is installed to the `pkgconfig` subdirectory under the directory where the Zofu library is installed.
 
 # Testing Zofu
 
