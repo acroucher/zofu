@@ -183,24 +183,35 @@ meson test
 
 # Running tests with Meson
 
-If you are using Meson to build your code, you can add the tests to your build and have Meson run them. Because the test driver source code files do not exist at configure time, but only after they have been created using `zofu-driver`, they can be declared in your `meson.build` file using the `configure_file()` function, e.g.:
+If you are using Meson to build your code, you can add the tests to your build and have Meson run them. Because the test driver source code files do not exist at configure time, but only after they have been created using `zofu-driver`, they can be declared in your `meson.build` file using the `configure_file()` function.
+
+The Meson build script below builds a shared library from a source file `adder.F90`, uses `zofu-driver` to create the driver source for a test module `adder_tests.F90` and creates a test driver program from it.
 
 ```python
-test_name = 'foo'
+project('adder', ['fortran', 'c'])
 
+zofu = dependency('zofu', required: true)
+
+src_dir = join_paths(meson.current_source_dir(), 'src')
+
+adder = shared_library('adder', join_paths(src_dir, 'adder.F90'))
+
+test_src_dir = join_paths(meson.current_source_dir(), 'test')
+
+test_name = 'adder_tests'
 test_src = join_paths(meson.current_source_dir(),
-             'test', 'src', test_name + '.F90')
+                      'test', test_name + '.F90')
 driver_src_name = test_name + '_driver.F90'
 
 test_driver_src = configure_file(
-                    output: driver_src_name,
-                    command: ['zofu-driver', test_src, driver_src_name])
+  output: driver_src_name,
+  command: ['zofu-driver', test_src, driver_src_name])
 
-unit_test = executable(test_name,
-              [test_driver_src, test_src],
-              dependencies: zofu)
-test(test_name, unit_test)
-
+test_exe = executable('adder_tests',
+                      [test_driver_src, test_src],
+                      link_with: adder,
+                      dependencies: zofu)
+test('adder_tests', test_exe)
 ```
 
 After building your code, all the tests can then be run from the build directory as follows:
