@@ -1,7 +1,9 @@
 module adder_test_with_setup
 
+  use zofu
   use adder_module
-  use adder_test_module, only: adder_test
+  use adder_tests, only: adder_test
+
   implicit none
 
   real :: y = 0.0
@@ -27,9 +29,11 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine test_1
+  subroutine test_1(test)
 
-    call adder_test(1., y, 3.718)
+    class(unit_test_type), intent(in out) :: test
+
+    call adder_test(test, 1., y, 3.718)
 
   end subroutine test_1
 
@@ -39,7 +43,9 @@ contains
 
     ! Test 2 with setup
 
-    call adder_test(-1., y, 1.718)
+    class(unit_test_type), intent(in out) :: test
+
+    call adder_test(test, -1., y, 1.718)
 
   end subroutine test_2
 
