@@ -324,11 +324,12 @@ contains
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_yaml(self, name) result(msg)
+  function unit_test_failure_yaml(self, name, reason) result(msg)
     !! Return YAML string for failed assertion message.
 
     class(unit_test_type), intent(in) :: self
     character(len = *), intent(in), optional :: name !! Assertion name
+    character(len = *), intent(in), optional :: reason !! Assertion failure reason
     character(:), allocatable :: msg
     ! Locals:
     character(len = 32) :: case_num_str
@@ -343,20 +344,24 @@ contains
     if (present(name)) then
        msg = msg // ', "assertion": "' // trim(name) // '"'
     end if
+    if (present(reason)) then
+       msg = msg // ', "reason": "' // trim(reason) // '"'
+    end if
 
   end function unit_test_failure_yaml
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_fail_assertion(self, name)
+  subroutine unit_test_fail_assertion(self, name, reason)
     !! Process failed assertion.
     class(unit_test_type), intent(in out) :: self
     character(len = *), intent(in), optional :: name !! Assertion name
+    character(len = *), intent(in), optional :: reason !! Assertion failure reason
 
     call self%assertions%fail()
     call self%case_assertions%fail()
 
-    write(*, '(a)') '- {' // self%failure_yaml(name) // '}'
+    write(*, '(a)') '- {' // self%failure_yaml(name, reason) // '}'
 
   end subroutine unit_test_fail_assertion
 
