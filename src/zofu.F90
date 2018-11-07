@@ -555,15 +555,15 @@ contains
 ! Real assertions:
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_real(self, a, b, tol, name)
+  subroutine unit_test_assert_equal_real(self, a, b, name, tol)
     !! Assert specified real scalars are equal to within the specified
     !! relative tolerance. If no tolerance is specified, the test
     !! default value is used.
 
     class(unit_test_type), intent(in out) :: self
     real, intent(in) :: a, b !! Value to compare
-    real, intent(in), optional :: tol !! Tolerance
     character(len = *), intent(in), optional :: name !! Assertion name
+    real, intent(in), optional :: tol !! Tolerance
 
     call self%assert(self%equal_tol(a, b, tol), name)
 
@@ -571,15 +571,15 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_real_array_1(self, a, b, tol, name)
+  subroutine unit_test_assert_equal_real_array_1(self, a, b, name, tol)
     !! Assert specified real rank-1 arrays are equal to within the
     !! specified relative tolerance. If no tolerance is specified, the
     !! test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     real, intent(in) :: a(:), b(:) !! Value to compare
-    real, intent(in), optional :: tol !! Tolerance
     character(len = *), intent(in), optional :: name !! Assertion name
+    real, intent(in), optional :: tol !! Tolerance
 
     call self%assert(all(self%equal_tol(a, b, tol)), name)
 
@@ -587,15 +587,15 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_real_array_2(self, a, b, tol, name)
+  subroutine unit_test_assert_equal_real_array_2(self, a, b, name, tol)
     !! Assert specified real rank-2 arrays are equal to within the
     !! specified relative tolerance. If no tolerance is specified, the
     !! test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     real, intent(in) :: a(:,:), b(:,:) !! Value to compare
-    real, intent(in), optional :: tol !! Tolerance
     character(len = *), intent(in), optional :: name !! Assertion name
+    real, intent(in), optional :: tol !! Tolerance
 
     call self%assert(all(self%equal_tol(a, b, tol)), name)
 
@@ -605,15 +605,15 @@ contains
 ! Double precision assertions:
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_double(self, a, b, tol, name)
+  subroutine unit_test_assert_equal_double(self, a, b, name, tol)
     !! Assert specified double precision scalars are equal to within
     !! the specified relative tolerance. If no tolerance is specified,
     !! the test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     real(dp), intent(in) :: a, b !! Value to compare
-    real(dp), intent(in), optional :: tol !! Tolerance
     character(len = *), intent(in), optional :: name !! Assertion name
+    real(dp), intent(in), optional :: tol !! Tolerance
 
     call self%assert(self%equal_tol(a, b, tol), name)
 
@@ -621,15 +621,15 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_double_array_1(self, a, b, tol, name)
+  subroutine unit_test_assert_equal_double_array_1(self, a, b, name, tol)
     !! Assert specified double precision rank-1 arrays are equal to
     !! within the specified relative tolerance. If no tolerance is
     !! specified, the test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     real(dp), intent(in) :: a(:), b(:) !! Value to compare
-    real(dp), intent(in), optional :: tol !! Tolerance
     character(len = *), intent(in), optional :: name !! Assertion name
+    real(dp), intent(in), optional :: tol !! Tolerance
 
     call self%assert(all(self%equal_tol(a, b, tol)), name)
 
@@ -655,15 +655,15 @@ contains
 ! Complex assertions:
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_complex(self, a, b, tol, name)
+  subroutine unit_test_assert_equal_complex(self, a, b, name, tol)
     !! Assert specified complex scalars are equal to within the
     !! specified relative tolerance. If no tolerance is specified, the
     !! test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     complex, intent(in) :: a, b !! Value to compare
-    real, intent(in), optional :: tol !! Tolerance
     character(len = *), intent(in), optional :: name !! Assertion name
+    real, intent(in), optional :: tol !! Tolerance
 
     call self%assert(self%equal_tol(a, b, tol), name)
 
@@ -671,15 +671,15 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_complex_array_1(self, a, b, tol, name)
+  subroutine unit_test_assert_equal_complex_array_1(self, a, b, name, tol)
     !! Assert specified complex rank-1 arrays are equal to within the
     !! specified relative tolerance. If no tolerance is specified, the
     !! test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     complex, intent(in) :: a(:), b(:) !! Value to compare
-    real, intent(in), optional :: tol !! Tolerance
     character(len = *), intent(in), optional :: name !! Assertion name
+    real, intent(in), optional :: tol !! Tolerance
 
     call self%assert(all(self%equal_tol(a, b, tol)), name)
 
@@ -687,15 +687,15 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_complex_array_2(self, a, b, tol, name)
+  subroutine unit_test_assert_equal_complex_array_2(self, a, b, name, tol)
     !! Assert specified complex rank-2 arrays are equal to within the
     !! specified relative tolerance. If no tolerance is specified, the
     !! test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     complex, intent(in) :: a(:,:), b(:,:) !! Value to compare
-    real, intent(in), optional :: tol !! Tolerance
     character(len = *), intent(in), optional :: name !! Assertion name
+    real, intent(in), optional :: tol !! Tolerance
 
     call self%assert(all(self%equal_tol(a, b, tol)), name)
 
