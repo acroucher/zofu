@@ -87,7 +87,7 @@ contains
 
     class(unit_test_type), intent(in out) :: test
 
-    call module_test(test, "adder_test.F90", "adder_test", 5, &
+    call module_test(test, "adder_tests.F90", "adder_tests", 5, &
          .false., .false., .false.)
     call module_test(test, "adder_setup_test.F90", "adder_test_with_setup", 2, &
          .true., .true., .false.)
