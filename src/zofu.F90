@@ -36,6 +36,7 @@ module zofu
    contains
      private
      procedure, public :: init => test_counter_init
+     procedure, public :: increment => test_counter_increment
      procedure, public :: pass => test_counter_pass
      procedure, public :: fail => test_counter_fail
      procedure :: test_counter_assign
@@ -128,6 +129,7 @@ contains
     !! Initializes test counter.
 
     class(test_counter_type), intent(in out) :: self
+
     self%count = 0
     self%passed = 0
     self%failed = 0
@@ -136,12 +138,22 @@ contains
 
 !------------------------------------------------------------------------
 
+  subroutine test_counter_increment(self)
+    !! Increments test counter count.
+
+    class(test_counter_type), intent(in out) :: self
+
+    self%count = self%count + 1
+
+  end subroutine test_counter_increment
+
+!------------------------------------------------------------------------
+
   subroutine test_counter_pass(self)
     !! Adds pass to counter.
 
     class(test_counter_type), intent(in out) :: self
 
-    self%count = self%count + 1
     self%passed = self%passed + 1
 
   end subroutine test_counter_pass
@@ -153,7 +165,6 @@ contains
 
     class(test_counter_type), intent(in out) :: self
 
-    self%count = self%count + 1
     self%failed = self%failed + 1
 
   end subroutine test_counter_fail
@@ -234,6 +245,7 @@ contains
     class(unit_test_type), intent(in out) :: self
     character(len = *), intent(in), optional :: case_name !! Name of test case
 
+    call self%cases%increment()
     call self%case_assertions%init()
 
     if (present(case_name)) then
@@ -317,7 +329,9 @@ contains
     !! Process passed assertion.
     class(unit_test_type), intent(in out) :: self
 
+    call self%assertions%increment()
     call self%assertions%pass()
+    call self%case_assertions%increment()
     call self%case_assertions%pass()
 
   end subroutine unit_test_pass_assertion
@@ -358,7 +372,9 @@ contains
     character(len = *), intent(in), optional :: name !! Assertion name
     character(len = *), intent(in), optional :: reason !! Assertion failure reason
 
+    call self%assertions%increment()
     call self%assertions%fail()
+    call self%case_assertions%increment()
     call self%case_assertions%fail()
 
     write(*, '(a)') '- {' // self%failure_yaml(name, reason) // '}'
