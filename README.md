@@ -87,9 +87,23 @@ zofu-driver module driver [--mpi]
 
 Here `module` is the filename of the unit test module, and `driver` is the filename of the driver source code to be written. (The optional `--mpi` argument is used for parallel unit tests.)
 
-The driver program can then be compiled and linked to the unit test module and to the Zofu library. When run, the driver program will write details of any failed assertions to the standard output, together with a summary of all cases and assertions at the end of the test. The output is in [YAML](http://yaml.org/) format, so it can be redirected to a file and parsed with scripts if required.
+The driver program can then be compiled and linked to the unit test module and to the Zofu library. When run, the program will return a non-zero error code if the test failed (i.e if any assertions failed).
 
-The driver program will also return a non-zero error code if the test failed (i.e if any assertions failed).
+# Output from Zofu
+
+As it runs, a Zofu test program will also write details of any failed assertions to the standard output, together with a summary of all cases and assertions at the end of the test. The output is in [YAML](http://yaml.org/) format, so it can be redirected to a file and parsed with scripts if required.
+
+The YAML output from a failed assertion (in the "failed assertions" array) is itself a dictionary which may contain the following keys:
+
+- "case": the number or name of the case
+- "assertion": the name of the assertion
+- "reason": "value" if the values being compared were not equal, or "shape" for array values which were not the same shape
+- "values": an array of the two values being compared: for array values, this shows scalar values for the first array indices where the values were not equal
+- "index": for rank-1 arrays, the integer index of the values shown in the "values" field (for rank-2 arrays, a 2-element integer array of indices)
+- "count": for array values, the total number of elements which were not equal
+- "rank": for tests parallelized with MPI, the processor rank of the failed assertion
+
+At the end of the test two further dictionaries are output, "cases" and "assertions", which summarise the total counts of cases and assertions, as well as how many passed and failed. Finally, the "passed" Boolean value records whether the test passed.
 
 # Running multiple tests
 
