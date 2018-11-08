@@ -51,6 +51,12 @@ module zofu
      type(test_counter_type), public :: assertions !! Test assertions counter
      type(test_counter_type), public :: case_assertions !! Test assertions counter for current case
      logical, public :: passed, failed !! Whether test passed or failed
+     character(:), allocatable, public :: format_logical !! Format for logical variables
+     character(:), allocatable, public :: format_integer !! Format for integer variables
+     character(:), allocatable, public :: format_real !! Format for real variables
+     character(:), allocatable, public :: format_real_scientific !! Format for real variables in scientific notation
+     character(:), allocatable, public :: unequal_str !! Output infix string for two unequal variables
+     character, public :: quote_str !! Quote mark character for string output
      real :: tolerance !! Default relative tolerance for testing floating point equality
      real :: minimum_scale !! Minimum scale for testing floating point equality
      character(:), allocatable :: case_name !! Name of last case run
@@ -110,6 +116,56 @@ module zofu
           unit_test_assert_equal_string, &
           unit_test_assert_equal_string_array_1, &
           unit_test_assert_equal_string_array_2
+     procedure :: unit_test_str_logical
+     procedure :: unit_test_str_integer
+     procedure :: unit_test_str_real
+     procedure :: unit_test_str_double
+     procedure :: unit_test_str_complex
+     procedure :: unit_test_str_string
+     generic, public :: str => &
+          unit_test_str_logical, &
+          unit_test_str_integer, &
+          unit_test_str_real, &
+          unit_test_str_double, &
+          unit_test_str_complex, &
+          unit_test_str_string
+     procedure :: unit_test_failure_reason_logical
+     procedure :: unit_test_failure_reason_logical_array_1
+     procedure :: unit_test_failure_reason_logical_array_2
+     procedure :: unit_test_failure_reason_integer
+     procedure :: unit_test_failure_reason_integer_array_1
+     procedure :: unit_test_failure_reason_integer_array_2
+     procedure :: unit_test_failure_reason_real
+     procedure :: unit_test_failure_reason_real_array_1
+     procedure :: unit_test_failure_reason_real_array_2
+     procedure :: unit_test_failure_reason_double
+     procedure :: unit_test_failure_reason_double_array_1
+     procedure :: unit_test_failure_reason_double_array_2
+     procedure :: unit_test_failure_reason_complex_array_1
+     procedure :: unit_test_failure_reason_complex_array_2
+     procedure :: unit_test_failure_reason_complex
+     procedure :: unit_test_failure_reason_string
+     procedure :: unit_test_failure_reason_string_array_1
+     procedure :: unit_test_failure_reason_string_array_2
+     generic, public :: failure_reason => &
+          unit_test_failure_reason_logical, &
+          unit_test_failure_reason_logical_array_1, &
+          unit_test_failure_reason_logical_array_2, &
+          unit_test_failure_reason_integer, &
+          unit_test_failure_reason_integer_array_1, &
+          unit_test_failure_reason_integer_array_2, &
+          unit_test_failure_reason_real, &
+          unit_test_failure_reason_real_array_1, &
+          unit_test_failure_reason_real_array_2, &
+          unit_test_failure_reason_double, &
+          unit_test_failure_reason_double_array_1, &
+          unit_test_failure_reason_double_array_2, &
+          unit_test_failure_reason_complex, &
+          unit_test_failure_reason_complex_array_1, &
+          unit_test_failure_reason_complex_array_2, &
+          unit_test_failure_reason_string, &
+          unit_test_failure_reason_string_array_1, &
+          unit_test_failure_reason_string_array_2
   end type unit_test_type
 
   abstract interface
@@ -120,6 +176,57 @@ module zofu
   end interface
 
 contains
+
+!------------------------------------------------------------------------
+! Index finding utilities:
+!------------------------------------------------------------------------
+
+  subroutine first_false_index_1(m, first)
+    !! Returns index of first false index in rank-1 mask array m (or
+    !! -1 if none found).
+
+    logical, intent(in) :: m(:) !! Input mask array
+    integer, intent(out) :: first !! Output index
+    ! Locals:
+    integer :: i
+    integer, allocatable :: indices(:)
+
+    indices = [(i, i = 1, size(m))]
+    indices = pack(indices, m)
+    if (size(indices) > 0) then
+       first = indices(1)
+    else
+       first = -1
+    end if
+
+  end subroutine first_false_index_1
+
+!------------------------------------------------------------------------
+
+  subroutine first_false_index_2(m, first)
+    !! Returns indices of first false index in rank-2 mask array m (or
+    !! (-1, -1) if none found).
+
+    logical, intent(in) :: m(:,:) !! Input mask array
+    integer, intent(out) :: first(2) !! Output indices
+    ! Locals:
+    integer :: i, j
+    integer, allocatable :: indices1(:,:), indices2(:,:)
+    integer, allocatable :: indices1_pack(:), indices2_pack(:)
+
+    associate(n1 => size(m, 1), n2 => size(m, 2))
+      indices1 = reshape([((i, i = 1, n1), j = 1, n2)], [n1, n2])
+      indices2 = reshape([((j, i = 1, n1), j = 1, n2)], [n1, n2])
+      indices1_pack = pack(indices1, m)
+      indices2_pack = pack(indices2, m)
+      if (size(indices1_pack) > 0) then
+         first = [indices1_pack(1), indices2_pack(1)]
+      else
+         first = [-1, -1]
+      end if
+    end associate
+
+  end subroutine first_false_index_2
 
 !------------------------------------------------------------------------
 ! Test counter methods:
@@ -227,6 +334,12 @@ contains
     ! Locals:
     real, parameter :: default_relative_tol = 1.e-6
     real, parameter :: default_minimum_scale = 1.e-6
+    character(3), parameter :: default_format_logical = "(l)"
+    character(4), parameter :: default_format_integer = "(i0)"
+    character(7), parameter :: default_format_real = "(f16.5)"
+    character(7), parameter :: default_format_real_scientific = "(e16.5)"
+    character(4), parameter :: default_unequal_str = " != "
+    character, parameter :: default_quote_str = "'"
 
     self%passed = .true.
     self%failed = .false.
@@ -234,6 +347,14 @@ contains
 
     self%tolerance = default_relative_tol
     self%minimum_scale = default_minimum_scale
+
+    self%format_logical = default_format_logical
+    self%format_integer = default_format_integer
+    self%format_real = default_format_real
+    self%format_real_scientific = default_format_real_scientific
+    self%quote_str = default_quote_str
+
+    self%unequal_str = default_unequal_str
 
   end subroutine unit_test_init
 
@@ -477,17 +598,18 @@ contains
 ! Logical assertions:
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_true(self, condition, name)
+  subroutine unit_test_assert_true(self, condition, name, reason)
     !! Assert specified condition is true.
 
     class(unit_test_type), intent(in out) :: self
     logical, intent(in) :: condition !! Value to assert
     character(len = *), intent(in), optional :: name !! Assertion name
+    character(len = *), intent(in), optional :: reason !! Assertion failure reason
 
     if (condition) then
        call self%pass_assertion()
     else
-       call self%fail_assertion(name)
+       call self%fail_assertion(name, reason)
     end if
 
   end subroutine unit_test_assert_true
@@ -501,7 +623,7 @@ contains
     logical, intent(in) :: a, b !! Value to compare
     character(len = *), intent(in), optional :: name !! Assertion name
 
-    call self%assert(a .eqv. b, name)
+    call self%assert(a .eqv. b, name, self%failure_reason(a, b))
 
   end subroutine unit_test_assert_equal_logical
 
@@ -514,7 +636,13 @@ contains
     logical, intent(in) :: a(:), b(:) !! Value to compare
     character(len = *), intent(in), optional :: name !! Assertion name
 
-    call self%assert(all(a .eqv. b), name)
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         call self%assert(all(a .eqv. b), name, self%failure_reason(a, b))
+      else
+         call self%assert(na == nb, name, self%failure_reason(a, b))
+      end if
+    end associate
 
   end subroutine unit_test_assert_equal_logical_array_1
 
@@ -527,7 +655,13 @@ contains
     logical, intent(in) :: a(:,:), b(:,:) !! Value to compare
     character(len = *), intent(in), optional :: name !! Assertion name
 
-    call self%assert(all(a .eqv. b), name)
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         call self%assert(all(a .eqv. b), name, self%failure_reason(a, b))
+      else
+         call self%assert(all(na == nb), name, self%failure_reason(a, b))
+      end if
+    end associate
 
   end subroutine unit_test_assert_equal_logical_array_2
 
@@ -542,7 +676,7 @@ contains
     integer, intent(in) :: a, b !! Value to compare
     character(len = *), intent(in), optional :: name !! Assertion name
 
-    call self%assert(a == b, name)
+    call self%assert(a == b, name, self%failure_reason(a, b))
 
   end subroutine unit_test_assert_equal_integer
 
@@ -555,7 +689,13 @@ contains
     integer, intent(in) :: a(:), b(:) !! Value to compare
     character(len = *), intent(in), optional :: name !! Assertion name
 
-    call self%assert(all(a == b), name)
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         call self%assert(all(a == b), name, self%failure_reason(a, b))
+      else
+         call self%assert(na == nb, name, self%failure_reason(a, b))
+      end if
+    end associate
 
   end subroutine unit_test_assert_equal_integer_array_1
 
@@ -568,7 +708,13 @@ contains
     integer, intent(in) :: a(:,:), b(:,:) !! Value to compare
     character(len = *), intent(in), optional :: name !! Assertion name
 
-    call self%assert(all(a == b), name)
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         call self%assert(all(a == b), name, self%failure_reason(a, b))
+      else
+         call self%assert(all(na == nb), name, self%failure_reason(a, b))
+      end if
+    end associate
 
   end subroutine unit_test_assert_equal_integer_array_2
 
@@ -586,7 +732,8 @@ contains
     character(len = *), intent(in), optional :: name !! Assertion name
     real, intent(in), optional :: tol !! Tolerance
 
-    call self%assert(self%equal_tol(a, b, tol), name)
+    call self%assert(self%equal_tol(a, b, tol), name, &
+         self%failure_reason(a, b))
 
   end subroutine unit_test_assert_equal_real
 
@@ -602,7 +749,14 @@ contains
     character(len = *), intent(in), optional :: name !! Assertion name
     real, intent(in), optional :: tol !! Tolerance
 
-    call self%assert(all(self%equal_tol(a, b, tol)), name)
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         call self%assert(all(self%equal_tol(a, b, tol)), name, &
+              self%failure_reason(a, b))
+      else
+         call self%assert(na == nb, name, self%failure_reason(a, b))
+      end if
+    end associate
 
   end subroutine unit_test_assert_equal_real_array_1
 
@@ -618,7 +772,14 @@ contains
     character(len = *), intent(in), optional :: name !! Assertion name
     real, intent(in), optional :: tol !! Tolerance
 
-    call self%assert(all(self%equal_tol(a, b, tol)), name)
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         call self%assert(all(self%equal_tol(a, b, tol)), &
+              name, self%failure_reason(a, b))
+      else
+         call self%assert(all(na == nb), name, self%failure_reason(a, b))
+      end if
+    end associate
 
   end subroutine unit_test_assert_equal_real_array_2
 
@@ -636,7 +797,8 @@ contains
     character(len = *), intent(in), optional :: name !! Assertion name
     real(dp), intent(in), optional :: tol !! Tolerance
 
-    call self%assert(self%equal_tol(a, b, tol), name)
+    call self%assert(self%equal_tol(a, b, tol), name, &
+         self%failure_reason(a, b))
 
   end subroutine unit_test_assert_equal_double
 
@@ -652,7 +814,14 @@ contains
     character(len = *), intent(in), optional :: name !! Assertion name
     real(dp), intent(in), optional :: tol !! Tolerance
 
-    call self%assert(all(self%equal_tol(a, b, tol)), name)
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         call self%assert(all(self%equal_tol(a, b, tol)), name, &
+              self%failure_reason(a, b))
+      else
+         call self%assert(na == nb, name, self%failure_reason(a, b))
+      end if
+    end associate
 
   end subroutine unit_test_assert_equal_double_array_1
 
@@ -668,7 +837,14 @@ contains
     real(dp), intent(in), optional :: tol !! Tolerance
     character(len = *), intent(in), optional :: name !! Assertion name
 
-    call self%assert(all(self%equal_tol(a, b, tol)), name)
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         call self%assert(all(self%equal_tol(a, b, tol)), &
+              name, self%failure_reason(a, b))
+      else
+         call self%assert(all(na == nb), name, self%failure_reason(a, b))
+      end if
+    end associate
 
   end subroutine unit_test_assert_equal_double_array_2
 
@@ -686,7 +862,8 @@ contains
     character(len = *), intent(in), optional :: name !! Assertion name
     real, intent(in), optional :: tol !! Tolerance
 
-    call self%assert(self%equal_tol(a, b, tol), name)
+    call self%assert(self%equal_tol(a, b, tol), name, &
+         self%failure_reason(a, b))
 
   end subroutine unit_test_assert_equal_complex
 
@@ -702,7 +879,14 @@ contains
     character(len = *), intent(in), optional :: name !! Assertion name
     real, intent(in), optional :: tol !! Tolerance
 
-    call self%assert(all(self%equal_tol(a, b, tol)), name)
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         call self%assert(all(self%equal_tol(a, b, tol)), name, &
+              self%failure_reason(a, b))
+      else
+         call self%assert(na == nb, name, self%failure_reason(a, b))
+      end if
+    end associate
 
   end subroutine unit_test_assert_equal_complex_array_1
 
@@ -718,7 +902,14 @@ contains
     character(len = *), intent(in), optional :: name !! Assertion name
     real, intent(in), optional :: tol !! Tolerance
 
-    call self%assert(all(self%equal_tol(a, b, tol)), name)
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         call self%assert(all(self%equal_tol(a, b, tol)), name, &
+              self%failure_reason(a, b))
+      else
+         call self%assert(all(na == nb), name, self%failure_reason(a, b))
+      end if
+    end associate
 
   end subroutine unit_test_assert_equal_complex_array_2
 
@@ -732,7 +923,8 @@ contains
     character(len = *), intent(in) :: a, b !! Value to compare
     character(len = *), intent(in), optional :: name !! Assertion name
 
-    call self%assert(str_equal(a, b), name)
+    call self%assert(str_equal(a, b), name, &
+         self%failure_reason(a, b))
 
   end subroutine unit_test_assert_equal_string
 
@@ -745,7 +937,14 @@ contains
     character(len = *), intent(in) :: a(:), b(:) !! Value to compare
     character(len = *), intent(in), optional :: name !! Assertion name
 
-    call self%assert(all(str_equal(a, b)), name)
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         call self%assert(all(str_equal(a, b)), name, &
+              self%failure_reason(a, b))
+      else
+         call self%assert(na == nb, name, self%failure_reason(a, b))
+      end if
+    end associate
 
   end subroutine unit_test_assert_equal_string_array_1
 
@@ -758,9 +957,602 @@ contains
     character(len = *), intent(in) :: a(:,:), b(:,:) !! Value to compare
     character(len = *), intent(in), optional :: name !! Assertion name
 
-    call self%assert(all(str_equal(a, b)), name)
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         call self%assert(all(str_equal(a, b)), name, &
+              self%failure_reason(a, b))
+      else
+         call self%assert(all(na == nb), name, self%failure_reason(a, b))
+      end if
+    end associate
 
   end subroutine unit_test_assert_equal_string_array_2
+
+!------------------------------------------------------------------------
+! String functions:
+!------------------------------------------------------------------------
+
+  function unit_test_str_logical(self, a) result(str)
+    !! Return string representation of logical variable.
+
+    class(unit_test_type), intent(in out) :: self
+    logical, intent(in) :: a
+    character(:), allocatable :: str
+    ! Locals:
+    character(1) :: astr
+
+    write(astr, self%format_logical) a
+    str = astr
+
+  end function unit_test_str_logical
+
+!------------------------------------------------------------------------
+
+  function unit_test_str_integer(self, a) result(str)
+    !! Return string representation of integer variable.
+
+    class(unit_test_type), intent(in out) :: self
+    integer, intent(in) :: a
+    character(:), allocatable :: str
+    ! Locals:
+    character(32) :: astr
+
+    write(astr, self%format_integer) a
+    str = trim(adjustl(astr))
+
+  end function unit_test_str_integer
+
+!------------------------------------------------------------------------
+
+  function unit_test_str_real(self, a) result(str)
+    !! Return string representation of real variable.
+
+    class(unit_test_type), intent(in out) :: self
+    real, intent(in) :: a
+    character(:), allocatable :: str
+    ! Locals:
+    character(32) :: astr
+    real, parameter :: small = 1.e-2, big = 1.e5
+
+    associate(absa => abs(a))
+      if ((small < absa) .and. (absa < big)) then
+         write(astr, self%format_real) a
+         str = str_strip_real_trailing_zeros(astr)
+      else
+         write(astr, self%format_real_scientific) a
+         str = trim(adjustl(astr))
+      end if
+    end associate
+
+  end function unit_test_str_real
+
+!------------------------------------------------------------------------
+
+  function unit_test_str_double(self, a) result(str)
+    !! Return string representation of double precision variable.
+
+    class(unit_test_type), intent(in out) :: self
+    real(dp), intent(in) :: a
+    character(:), allocatable :: str
+
+    str = self%str(sngl(a))
+
+  end function unit_test_str_double
+
+!------------------------------------------------------------------------
+
+  function unit_test_str_complex(self, a) result(str)
+    !! Return string representation of complex variable.
+
+    class(unit_test_type), intent(in out) :: self
+    complex, intent(in) :: a
+    character(:), allocatable :: str
+
+    str = '(' // self%str(real(a)) // ', ' // self%str(aimag(a)) // ')'
+
+  end function unit_test_str_complex
+
+!------------------------------------------------------------------------
+
+  function unit_test_str_string(self, a) result(str)
+    !! Return string representation of string variable (trimming and
+    !! adding quotes).
+
+    class(unit_test_type), intent(in out) :: self
+    character(len = *), intent(in) :: a
+    character(:), allocatable :: str
+
+    str = self%quote_str // trim(adjustl(a)) // self%quote_str
+
+  end function unit_test_str_string
+
+!------------------------------------------------------------------------
+! Failure reason functions:
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_logical(self, a, b) result(reason)
+    !! Return failure reason string for logical values.
+
+    class(unit_test_type), intent(in out) :: self
+    logical, intent(in) :: a, b
+    character(:), allocatable :: reason
+
+    reason = self%str(a) // self%unequal_str // self%str(b)
+
+  end function unit_test_failure_reason_logical
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_logical_array_1(self, a, b) &
+       result(reason)
+    !! Return failure reason string for rank-1 logical array values.
+
+    class(unit_test_type), intent(in out) :: self
+    logical, intent(in) :: a(:), b(:)
+    character(:), allocatable :: reason
+    ! Locals:
+    logical :: m(size(a))
+    integer :: i, num
+
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         m = .not. (a .eqv. b)
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_1(m, i)
+            reason = self%failure_reason(a(i), b(i)) // " at index " // self%str(i)
+            if (num > 1) then
+               reason = reason // "; total " // self%str(num) // " differences"
+            end if
+         else
+            reason = ""
+         end if
+      else
+         reason = "size (" // self%failure_reason(na, nb) // ")"
+      end if
+    end associate
+
+  end function unit_test_failure_reason_logical_array_1
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_logical_array_2(self, a, b) &
+       result(reason)
+    !! Return failure reason string for rank-2 logical array values.
+
+    class(unit_test_type), intent(in out) :: self
+    logical, intent(in) :: a(:,:), b(:,:)
+    character(:), allocatable :: reason
+    ! Locals:
+    logical :: m(size(a, 1), size(a, 2))
+    integer :: ij(2), num
+
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         m = .not. (a .eqv. b)
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_2(m, ij)
+            reason = self%failure_reason(a(ij(1), ij(2)), b(ij(1), ij(2))) &
+                 // " at index (" // self%str(ij(1)) // ", " // self%str(ij(2)) // ")"
+            if (num > 1) then
+               reason = reason // "; total " // self%str(num) // " differences"
+            end if
+         else
+            reason = ""
+         end if
+      else
+         reason = "shape (" // self%failure_reason(na, nb) // ")"
+      end if
+    end associate
+
+  end function unit_test_failure_reason_logical_array_2
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_integer(self, a, b) result(reason)
+    !! Return failure reason string for integer values.
+
+    class(unit_test_type), intent(in out) :: self
+    integer, intent(in) :: a, b
+    character(:), allocatable :: reason
+
+    reason = self%str(a) // self%unequal_str // self%str(b)
+    
+  end function unit_test_failure_reason_integer
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_integer_array_1(self, a, b) &
+       result(reason)
+    !! Return failure reason string for rank-1 integer array values.
+
+    class(unit_test_type), intent(in out) :: self
+    integer, intent(in) :: a(:), b(:)
+    character(:), allocatable :: reason
+    ! Locals:
+    logical :: m(size(a))
+    integer :: i, num
+
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         m = .not. (a == b)
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_1(m, i)
+            reason = self%failure_reason(a(i), b(i)) // " at index " // self%str(i)
+            if (num > 1) then
+               reason = reason // "; total " // self%str(num) // " differences"
+            end if
+         else
+            reason = ""
+         end if
+      else
+         reason = "size (" // self%failure_reason(na, nb) // ")"
+      end if
+    end associate
+
+  end function unit_test_failure_reason_integer_array_1
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_integer_array_2(self, a, b) &
+       result(reason)
+    !! Return failure reason string for rank-2 integer array values.
+
+    class(unit_test_type), intent(in out) :: self
+    integer, intent(in) :: a(:,:), b(:,:)
+    character(:), allocatable :: reason
+    ! Locals:
+    logical :: m(size(a, 1), size(a, 2))
+    integer :: ij(2), num
+
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         m = .not. (a == b)
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_2(m, ij)
+            reason = self%failure_reason(a(ij(1), ij(2)), b(ij(1), ij(2))) &
+                 // " at index (" // self%str(ij(1)) // ", " // self%str(ij(2)) // ")"
+            if (num > 1) then
+               reason = reason // "; total " // self%str(num) // " differences"
+            end if
+         else
+            reason = ""
+         end if
+      else
+         reason = "shape (" // self%failure_reason(na, nb) // ")"
+      end if
+    end associate
+
+  end function unit_test_failure_reason_integer_array_2
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_real(self, a, b) result(reason)
+    !! Return failure reason string for real values.
+
+    class(unit_test_type), intent(in out) :: self
+    real, intent(in) :: a, b
+    character(:), allocatable :: reason
+
+    reason = self%str(a) // self%unequal_str // self%str(b)
+    
+  end function unit_test_failure_reason_real
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_real_array_1(self, a, b, tol) &
+       result(reason)
+    !! Return failure reason string for rank-1 real array values.
+
+    class(unit_test_type), intent(in out) :: self
+    real, intent(in) :: a(:), b(:)
+    real, intent(in), optional :: tol !! Tolerance
+    character(:), allocatable :: reason
+    ! Locals:
+    logical :: m(size(a))
+    integer :: i, num
+
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         m = .not. (self%equal_tol(a, b, tol))
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_1(m, i)
+            reason = self%failure_reason(a(i), b(i)) // " at index " // self%str(i)
+            if (num > 1) then
+               reason = reason // "; total " // self%str(num) // " differences"
+            end if
+         else
+            reason = ""
+         end if
+      else
+         reason = "size (" // self%failure_reason(na, nb) // ")"
+      end if
+    end associate
+
+  end function unit_test_failure_reason_real_array_1
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_real_array_2(self, a, b, tol) &
+       result(reason)
+    !! Return failure reason string for rank-2 real array values.
+
+    class(unit_test_type), intent(in out) :: self
+    real, intent(in) :: a(:,:), b(:,:)
+    real, intent(in), optional :: tol !! Tolerance
+    character(:), allocatable :: reason
+    ! Locals:
+    logical :: m(size(a, 1), size(a, 2))
+    integer :: ij(2), num
+
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         m = .not. (self%equal_tol(a, b, tol))
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_2(m, ij)
+            reason = self%failure_reason(a(ij(1), ij(2)), b(ij(1), ij(2))) &
+                 // " at index (" // self%str(ij(1)) // ", " // self%str(ij(2)) // ")"
+            if (num > 1) then
+               reason = reason // "; total " // self%str(num) // " differences"
+            end if
+         else
+            reason = ""
+         end if
+      else
+         reason = "shape (" // self%failure_reason(na, nb) // ")"
+      end if
+    end associate
+
+  end function unit_test_failure_reason_real_array_2
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_double(self, a, b) result(reason)
+    !! Return failure reason string for double precision values.
+
+    class(unit_test_type), intent(in out) :: self
+    real(dp), intent(in) :: a, b
+    character(:), allocatable :: reason
+
+    reason = self%str(a) // self%unequal_str // self%str(b)
+    
+  end function unit_test_failure_reason_double
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_double_array_1(self, a, b, tol) &
+       result(reason)
+    !! Return failure reason string for rank-1 double precision array values.
+
+    class(unit_test_type), intent(in out) :: self
+    real(dp), intent(in) :: a(:), b(:)
+    real(dp), intent(in), optional :: tol !! Tolerance
+    character(:), allocatable :: reason
+    ! Locals:
+    logical :: m(size(a))
+    integer :: i, num
+
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         m = .not. (self%equal_tol(a, b, tol))
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_1(m, i)
+            reason = self%failure_reason(a(i), b(i)) // " at index " // self%str(i)
+            if (num > 1) then
+               reason = reason // "; total " // self%str(num) // " differences"
+            end if
+         else
+            reason = ""
+         end if
+      else
+         reason = "size (" // self%failure_reason(na, nb) // ")"
+      end if
+    end associate
+
+  end function unit_test_failure_reason_double_array_1
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_double_array_2(self, a, b, tol) &
+       result(reason)
+    !! Return failure reason string for rank-2 double precision array values.
+
+    class(unit_test_type), intent(in out) :: self
+    real(dp), intent(in) :: a(:,:), b(:,:)
+    real(dp), intent(in), optional :: tol !! Tolerance
+    character(:), allocatable :: reason
+    ! Locals:
+    logical :: m(size(a, 1), size(a, 2))
+    integer :: ij(2), num
+
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         m = .not. (self%equal_tol(a, b, tol))
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_2(m, ij)
+            reason = self%failure_reason(a(ij(1), ij(2)), b(ij(1), ij(2))) &
+                 // " at index (" // self%str(ij(1)) // ", " // self%str(ij(2)) // ")"
+            if (num > 1) then
+               reason = reason // "; total " // self%str(num) // " differences"
+            end if
+         else
+            reason = ""
+         end if
+      else
+         reason = "shape (" // self%failure_reason(na, nb) // ")"
+      end if
+    end associate
+
+  end function unit_test_failure_reason_double_array_2
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_complex(self, a, b) result(reason)
+    !! Return failure reason string for complex values.
+
+    class(unit_test_type), intent(in out) :: self
+    complex, intent(in) :: a, b
+    character(:), allocatable :: reason
+
+    reason = self%str(a) // self%unequal_str // self%str(b)
+    
+  end function unit_test_failure_reason_complex
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_complex_array_1(self, a, b, tol) &
+       result(reason)
+    !! Return failure reason string for rank-1 complex array values.
+
+    class(unit_test_type), intent(in out) :: self
+    complex, intent(in) :: a(:), b(:)
+    real, intent(in), optional :: tol !! Tolerance
+    character(:), allocatable :: reason
+    ! Locals:
+    logical :: m(size(a))
+    integer :: i, num
+
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         m = .not. (self%equal_tol(a, b, tol))
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_1(m, i)
+            reason = self%failure_reason(a(i), b(i)) // " at index " // self%str(i)
+            if (num > 1) then
+               reason = reason // "; total " // self%str(num) // " differences"
+            end if
+         else
+            reason = ""
+         end if
+      else
+         reason = "size (" // self%failure_reason(na, nb) // ")"
+      end if
+    end associate
+
+  end function unit_test_failure_reason_complex_array_1
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_complex_array_2(self, a, b, tol) &
+       result(reason)
+    !! Return failure reason string for rank-2 complex array values.
+
+    class(unit_test_type), intent(in out) :: self
+    complex, intent(in) :: a(:,:), b(:,:)
+    real, intent(in), optional :: tol !! Tolerance
+    character(:), allocatable :: reason
+    ! Locals:
+    logical :: m(size(a, 1), size(a, 2))
+    integer :: ij(2), num
+
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         m = .not. (self%equal_tol(a, b, tol))
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_2(m, ij)
+            reason = self%failure_reason(a(ij(1), ij(2)), b(ij(1), ij(2))) &
+                 // " at index (" // self%str(ij(1)) // ", " // self%str(ij(2)) // ")"
+            if (num > 1) then
+               reason = reason // "; total " // self%str(num) // " differences"
+            end if
+         else
+            reason = ""
+         end if
+      else
+         reason = "shape (" // self%failure_reason(na, nb) // ")"
+      end if
+    end associate
+
+  end function unit_test_failure_reason_complex_array_2
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_string(self, a, b) result(reason)
+    !! Return failure reason string for string values.
+
+    class(unit_test_type), intent(in out) :: self
+    character(len = *), intent(in) :: a, b
+    character(:), allocatable :: reason
+
+    reason = self%str(a) // self%unequal_str // self%str(b)
+    
+  end function unit_test_failure_reason_string
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_string_array_1(self, a, b) &
+       result(reason)
+    !! Return failure reason string for rank-1 string array values.
+
+    class(unit_test_type), intent(in out) :: self
+    character(len = *), intent(in) :: a(:), b(:)
+    character(:), allocatable :: reason
+    ! Locals:
+    logical :: m(size(a))
+    integer :: i, num
+
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         m = .not. (str_equal(a, b))
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_1(m, i)
+            reason = self%failure_reason(a(i), b(i)) // " at index " // self%str(i)
+            if (num > 1) then
+               reason = reason // "; total " // self%str(num) // " differences"
+            end if
+         else
+            reason = ""
+         end if
+      else
+         reason = "size (" // self%failure_reason(na, nb) // ")"
+      end if
+    end associate
+
+  end function unit_test_failure_reason_string_array_1
+
+!------------------------------------------------------------------------
+
+  function unit_test_failure_reason_string_array_2(self, a, b) &
+       result(reason)
+    !! Return failure reason string for rank-2 string array values.
+
+    class(unit_test_type), intent(in out) :: self
+    character(len = *), intent(in) :: a(:,:), b(:,:)
+    character(:), allocatable :: reason
+    ! Locals:
+    logical :: m(size(a, 1), size(a, 2))
+    integer :: ij(2), num
+
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         m = .not. (str_equal(a, b))
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_2(m, ij)
+            reason = self%failure_reason(a(ij(1), ij(2)), b(ij(1), ij(2))) &
+                 // " at index (" // self%str(ij(1)) // ", " // self%str(ij(2)) // ")"
+            if (num > 1) then
+               reason = reason // "; total " // self%str(num) // " differences"
+            end if
+         else
+            reason = ""
+         end if
+      else
+         reason = "shape (" // self%failure_reason(na, nb) // ")"
+      end if
+    end associate
+
+  end function unit_test_failure_reason_string_array_2
 
 !------------------------------------------------------------------------
 
