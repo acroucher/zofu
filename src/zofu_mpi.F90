@@ -123,19 +123,19 @@ contains
 
 !------------------------------------------------------------------------
 
-  function unit_test_mpi_failure_yaml(self, name, reason) result(msg)
+  function unit_test_mpi_failure_yaml(self, name, failure) result(msg)
     !! Return YAML string for failed assertion message, including MPI
     !! rank.
 
     class(unit_test_mpi_type), intent(in) :: self
     character(len = *), intent(in), optional :: name
-    character(len = *), intent(in), optional :: reason
+    type(assertion_failure_type), intent(in), optional :: failure !! Assertion failure type
     character(:), allocatable :: msg
     ! Locals:
     integer :: rank, ierr
     character(len = 32) :: rank_str
 
-    msg = self%unit_test_type%failure_yaml(name, reason)
+    msg = self%unit_test_type%failure_yaml(name, failure)
 
     call mpi_comm_rank(MPI_COMM_WORLD, rank, ierr)
     write(rank_str, '(i0)') rank

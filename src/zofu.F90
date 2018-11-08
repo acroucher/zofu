@@ -26,6 +26,8 @@ module zofu
 
   integer, parameter, public :: dp = kind(0.d0) !! double precision kind
 
+  integer, parameter :: FAILURE_REASON_VALUE = 1, FAILURE_REASON_SHAPE = 2 !! assertion failure reasons
+
   type, public :: test_counter_type
      !! Type for counting total number of cases or assertions,
      !! together with how many have passed and failed.
@@ -44,6 +46,20 @@ module zofu
      procedure, public :: yaml => test_counter_yaml
   end type test_counter_type
 
+  type, public :: assertion_failure_type
+     !! Type for assertion failure details.
+     private
+     integer, public :: reason !! why the assertion failed
+     character(:), allocatable, public  :: value1, value2 !! string representation of unequal values
+     logical, public :: scalar !! whether values are scalar or array
+     character(:), allocatable, public :: index !! string representation of array indices of first assertion failure
+     character(:), allocatable, public :: count !! string representation of number of assertion failures in array
+   contains
+     private
+     procedure, public :: init => assertion_failure_init
+     procedure, public :: yaml => assertion_failure_yaml
+  end type assertion_failure_type
+
   type, public :: unit_test_type
      !! Unit test type
      private
@@ -55,7 +71,6 @@ module zofu
      character(:), allocatable, public :: format_integer !! Format for integer variables
      character(:), allocatable, public :: format_real !! Format for real variables
      character(:), allocatable, public :: format_real_scientific !! Format for real variables in scientific notation
-     character(:), allocatable, public :: unequal_str !! Output infix string for two unequal variables
      character, public :: quote_str !! Quote mark character for string output
      real :: tolerance !! Default relative tolerance for testing floating point equality
      real :: minimum_scale !! Minimum scale for testing floating point equality
@@ -118,6 +133,7 @@ module zofu
           unit_test_assert_equal_string_array_2
      procedure :: unit_test_str_logical
      procedure :: unit_test_str_integer
+     procedure :: unit_test_str_integer_pair
      procedure :: unit_test_str_real
      procedure :: unit_test_str_double
      procedure :: unit_test_str_complex
@@ -125,47 +141,48 @@ module zofu
      generic, public :: str => &
           unit_test_str_logical, &
           unit_test_str_integer, &
+          unit_test_str_integer_pair, &
           unit_test_str_real, &
           unit_test_str_double, &
           unit_test_str_complex, &
           unit_test_str_string
-     procedure :: unit_test_failure_reason_logical
-     procedure :: unit_test_failure_reason_logical_array_1
-     procedure :: unit_test_failure_reason_logical_array_2
-     procedure :: unit_test_failure_reason_integer
-     procedure :: unit_test_failure_reason_integer_array_1
-     procedure :: unit_test_failure_reason_integer_array_2
-     procedure :: unit_test_failure_reason_real
-     procedure :: unit_test_failure_reason_real_array_1
-     procedure :: unit_test_failure_reason_real_array_2
-     procedure :: unit_test_failure_reason_double
-     procedure :: unit_test_failure_reason_double_array_1
-     procedure :: unit_test_failure_reason_double_array_2
-     procedure :: unit_test_failure_reason_complex_array_1
-     procedure :: unit_test_failure_reason_complex_array_2
-     procedure :: unit_test_failure_reason_complex
-     procedure :: unit_test_failure_reason_string
-     procedure :: unit_test_failure_reason_string_array_1
-     procedure :: unit_test_failure_reason_string_array_2
-     generic, public :: failure_reason => &
-          unit_test_failure_reason_logical, &
-          unit_test_failure_reason_logical_array_1, &
-          unit_test_failure_reason_logical_array_2, &
-          unit_test_failure_reason_integer, &
-          unit_test_failure_reason_integer_array_1, &
-          unit_test_failure_reason_integer_array_2, &
-          unit_test_failure_reason_real, &
-          unit_test_failure_reason_real_array_1, &
-          unit_test_failure_reason_real_array_2, &
-          unit_test_failure_reason_double, &
-          unit_test_failure_reason_double_array_1, &
-          unit_test_failure_reason_double_array_2, &
-          unit_test_failure_reason_complex, &
-          unit_test_failure_reason_complex_array_1, &
-          unit_test_failure_reason_complex_array_2, &
-          unit_test_failure_reason_string, &
-          unit_test_failure_reason_string_array_1, &
-          unit_test_failure_reason_string_array_2
+     procedure :: unit_test_failure_logical
+     procedure :: unit_test_failure_logical_array_1
+     procedure :: unit_test_failure_logical_array_2
+     procedure :: unit_test_failure_integer
+     procedure :: unit_test_failure_integer_array_1
+     procedure :: unit_test_failure_integer_array_2
+     procedure :: unit_test_failure_real
+     procedure :: unit_test_failure_real_array_1
+     procedure :: unit_test_failure_real_array_2
+     procedure :: unit_test_failure_double
+     procedure :: unit_test_failure_double_array_1
+     procedure :: unit_test_failure_double_array_2
+     procedure :: unit_test_failure_complex_array_1
+     procedure :: unit_test_failure_complex_array_2
+     procedure :: unit_test_failure_complex
+     procedure :: unit_test_failure_string
+     procedure :: unit_test_failure_string_array_1
+     procedure :: unit_test_failure_string_array_2
+     generic, public :: failure => &
+          unit_test_failure_logical, &
+          unit_test_failure_logical_array_1, &
+          unit_test_failure_logical_array_2, &
+          unit_test_failure_integer, &
+          unit_test_failure_integer_array_1, &
+          unit_test_failure_integer_array_2, &
+          unit_test_failure_real, &
+          unit_test_failure_real_array_1, &
+          unit_test_failure_real_array_2, &
+          unit_test_failure_double, &
+          unit_test_failure_double_array_1, &
+          unit_test_failure_double_array_2, &
+          unit_test_failure_complex, &
+          unit_test_failure_complex_array_1, &
+          unit_test_failure_complex_array_2, &
+          unit_test_failure_string, &
+          unit_test_failure_string_array_1, &
+          unit_test_failure_string_array_2
   end type unit_test_type
 
   abstract interface
@@ -310,6 +327,82 @@ contains
   end function test_counter_yaml
 
 !------------------------------------------------------------------------
+! Assertion failure methods:
+!------------------------------------------------------------------------
+
+  subroutine assertion_failure_init(self, value1, value2, reason, &
+       scalar, index, num)
+    !! Initialize assertion failure.
+
+    class(assertion_failure_type), intent(in out) :: self
+    character(len = *), intent(in) :: value1, value2 !! values
+    integer, intent(in), optional :: reason !! Failure reason
+    logical, intent(in), optional :: scalar !! whether values are scalar or array
+    character(len = *), intent(in), optional :: index !! array index
+    character(len = *), intent(in), optional :: num !! number of assertion failures in array
+    ! Locals:
+    integer, parameter :: default_reason = FAILURE_REASON_VALUE
+    character, parameter :: default_index = '1'
+    character, parameter :: default_count = '1'
+
+    self%value1 = value1
+    self%value2 = value2
+
+    if (present(reason)) then
+       self%reason = reason
+    else
+       self%reason = default_reason
+    end if
+
+    if (present(scalar)) then
+       self%scalar = scalar
+    else
+       self%scalar = .true.
+    end if
+
+    if (self%scalar) then
+       self%index = default_index
+       self%count = default_count
+    else
+       if (present(index)) then
+          self%index = index
+       else
+          self%index = default_index
+       end if
+       if (present(num)) then
+          self%count = num
+       else
+          self%count = default_count
+       end if
+    end if
+
+  end subroutine assertion_failure_init
+  
+!------------------------------------------------------------------------
+
+  function assertion_failure_yaml(self) result(yaml)
+    !! Initialize assertion failure.
+
+    class(assertion_failure_type), intent(in) :: self
+    character(:), allocatable :: yaml
+
+    yaml = '"reason": '
+    select case (self%reason)
+    case (FAILURE_REASON_VALUE)
+       yaml = yaml // '"value"'
+    case(FAILURE_REASON_SHAPE)
+       yaml = yaml // '"shape"'
+    end select
+
+    yaml = yaml // ', "values": [' // self%value1 // ', ' // self%value2 // ']'
+
+    if (.not. self%scalar) then
+       yaml = yaml // ', "index": ' // self%index // ', "count": ' // self%count
+    end if
+
+  end function assertion_failure_yaml
+    
+!------------------------------------------------------------------------
 ! Unit test methods:
 !------------------------------------------------------------------------
 
@@ -338,8 +431,7 @@ contains
     character(4), parameter :: default_format_integer = "(i0)"
     character(7), parameter :: default_format_real = "(f16.5)"
     character(7), parameter :: default_format_real_scientific = "(e16.5)"
-    character(4), parameter :: default_unequal_str = " != "
-    character, parameter :: default_quote_str = "'"
+    character, parameter :: default_quote_str = '"'
 
     self%passed = .true.
     self%failed = .false.
@@ -353,8 +445,6 @@ contains
     self%format_real = default_format_real
     self%format_real_scientific = default_format_real_scientific
     self%quote_str = default_quote_str
-
-    self%unequal_str = default_unequal_str
 
   end subroutine unit_test_init
 
@@ -459,12 +549,12 @@ contains
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_yaml(self, name, reason) result(msg)
+  function unit_test_failure_yaml(self, name, failure) result(msg)
     !! Return YAML string for failed assertion message.
 
     class(unit_test_type), intent(in) :: self
     character(len = *), intent(in), optional :: name !! Assertion name
-    character(len = *), intent(in), optional :: reason !! Assertion failure reason
+    type(assertion_failure_type), intent(in), optional :: failure !! Assertion failure type
     character(:), allocatable :: msg
     ! Locals:
     character(len = 32) :: case_num_str
@@ -479,26 +569,26 @@ contains
     if (present(name)) then
        msg = msg // ', "assertion": "' // trim(name) // '"'
     end if
-    if (present(reason)) then
-       msg = msg // ', "reason": "' // trim(reason) // '"'
+    if (present(failure)) then
+       msg = msg // ', ' // failure%yaml()
     end if
 
   end function unit_test_failure_yaml
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_fail_assertion(self, name, reason)
+  subroutine unit_test_fail_assertion(self, name, failure)
     !! Process failed assertion.
     class(unit_test_type), intent(in out) :: self
     character(len = *), intent(in), optional :: name !! Assertion name
-    character(len = *), intent(in), optional :: reason !! Assertion failure reason
+    type(assertion_failure_type), intent(in), optional :: failure !! Assertion failure
 
     call self%assertions%increment()
     call self%assertions%fail()
     call self%case_assertions%increment()
     call self%case_assertions%fail()
 
-    write(*, '(a)') '- {' // self%failure_yaml(name, reason) // '}'
+    write(*, '(a)') '- {' // self%failure_yaml(name, failure) // '}'
 
   end subroutine unit_test_fail_assertion
 
@@ -598,18 +688,18 @@ contains
 ! Logical assertions:
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_true(self, condition, name, reason)
+  subroutine unit_test_assert_true(self, condition, name, failure)
     !! Assert specified condition is true.
 
     class(unit_test_type), intent(in out) :: self
     logical, intent(in) :: condition !! Value to assert
     character(len = *), intent(in), optional :: name !! Assertion name
-    character(len = *), intent(in), optional :: reason !! Assertion failure reason
+    type(assertion_failure_type), intent(in), optional :: failure !! Assertion failure
 
     if (condition) then
        call self%pass_assertion()
     else
-       call self%fail_assertion(name, reason)
+       call self%fail_assertion(name, failure)
     end if
 
   end subroutine unit_test_assert_true
@@ -623,7 +713,7 @@ contains
     logical, intent(in) :: a, b !! Value to compare
     character(len = *), intent(in), optional :: name !! Assertion name
 
-    call self%assert(a .eqv. b, name, self%failure_reason(a, b))
+    call self%assert(a .eqv. b, name, self%failure(a, b))
 
   end subroutine unit_test_assert_equal_logical
 
@@ -638,9 +728,9 @@ contains
 
     associate(na => size(a), nb => size(b))
       if (na == nb) then
-         call self%assert(all(a .eqv. b), name, self%failure_reason(a, b))
+         call self%assert(all(a .eqv. b), name, self%failure(a, b))
       else
-         call self%assert(na == nb, name, self%failure_reason(a, b))
+         call self%assert(na == nb, name, self%failure(a, b))
       end if
     end associate
 
@@ -657,9 +747,9 @@ contains
 
     associate(na => shape(a), nb => shape(b))
       if (all(na == nb)) then
-         call self%assert(all(a .eqv. b), name, self%failure_reason(a, b))
+         call self%assert(all(a .eqv. b), name, self%failure(a, b))
       else
-         call self%assert(all(na == nb), name, self%failure_reason(a, b))
+         call self%assert(all(na == nb), name, self%failure(a, b))
       end if
     end associate
 
@@ -676,7 +766,7 @@ contains
     integer, intent(in) :: a, b !! Value to compare
     character(len = *), intent(in), optional :: name !! Assertion name
 
-    call self%assert(a == b, name, self%failure_reason(a, b))
+    call self%assert(a == b, name, self%failure(a, b))
 
   end subroutine unit_test_assert_equal_integer
 
@@ -691,9 +781,9 @@ contains
 
     associate(na => size(a), nb => size(b))
       if (na == nb) then
-         call self%assert(all(a == b), name, self%failure_reason(a, b))
+         call self%assert(all(a == b), name, self%failure(a, b))
       else
-         call self%assert(na == nb, name, self%failure_reason(a, b))
+         call self%assert(na == nb, name, self%failure(a, b))
       end if
     end associate
 
@@ -710,9 +800,9 @@ contains
 
     associate(na => shape(a), nb => shape(b))
       if (all(na == nb)) then
-         call self%assert(all(a == b), name, self%failure_reason(a, b))
+         call self%assert(all(a == b), name, self%failure(a, b))
       else
-         call self%assert(all(na == nb), name, self%failure_reason(a, b))
+         call self%assert(all(na == nb), name, self%failure(a, b))
       end if
     end associate
 
@@ -733,7 +823,7 @@ contains
     real, intent(in), optional :: tol !! Tolerance
 
     call self%assert(self%equal_tol(a, b, tol), name, &
-         self%failure_reason(a, b))
+         self%failure(a, b))
 
   end subroutine unit_test_assert_equal_real
 
@@ -752,9 +842,9 @@ contains
     associate(na => size(a), nb => size(b))
       if (na == nb) then
          call self%assert(all(self%equal_tol(a, b, tol)), name, &
-              self%failure_reason(a, b))
+              self%failure(a, b))
       else
-         call self%assert(na == nb, name, self%failure_reason(a, b))
+         call self%assert(na == nb, name, self%failure(a, b))
       end if
     end associate
 
@@ -775,9 +865,9 @@ contains
     associate(na => shape(a), nb => shape(b))
       if (all(na == nb)) then
          call self%assert(all(self%equal_tol(a, b, tol)), &
-              name, self%failure_reason(a, b))
+              name, self%failure(a, b))
       else
-         call self%assert(all(na == nb), name, self%failure_reason(a, b))
+         call self%assert(all(na == nb), name, self%failure(a, b))
       end if
     end associate
 
@@ -798,7 +888,7 @@ contains
     real(dp), intent(in), optional :: tol !! Tolerance
 
     call self%assert(self%equal_tol(a, b, tol), name, &
-         self%failure_reason(a, b))
+         self%failure(a, b))
 
   end subroutine unit_test_assert_equal_double
 
@@ -817,9 +907,9 @@ contains
     associate(na => size(a), nb => size(b))
       if (na == nb) then
          call self%assert(all(self%equal_tol(a, b, tol)), name, &
-              self%failure_reason(a, b))
+              self%failure(a, b))
       else
-         call self%assert(na == nb, name, self%failure_reason(a, b))
+         call self%assert(na == nb, name, self%failure(a, b))
       end if
     end associate
 
@@ -840,9 +930,9 @@ contains
     associate(na => shape(a), nb => shape(b))
       if (all(na == nb)) then
          call self%assert(all(self%equal_tol(a, b, tol)), &
-              name, self%failure_reason(a, b))
+              name, self%failure(a, b))
       else
-         call self%assert(all(na == nb), name, self%failure_reason(a, b))
+         call self%assert(all(na == nb), name, self%failure(a, b))
       end if
     end associate
 
@@ -863,7 +953,7 @@ contains
     real, intent(in), optional :: tol !! Tolerance
 
     call self%assert(self%equal_tol(a, b, tol), name, &
-         self%failure_reason(a, b))
+         self%failure(a, b))
 
   end subroutine unit_test_assert_equal_complex
 
@@ -882,9 +972,9 @@ contains
     associate(na => size(a), nb => size(b))
       if (na == nb) then
          call self%assert(all(self%equal_tol(a, b, tol)), name, &
-              self%failure_reason(a, b))
+              self%failure(a, b))
       else
-         call self%assert(na == nb, name, self%failure_reason(a, b))
+         call self%assert(na == nb, name, self%failure(a, b))
       end if
     end associate
 
@@ -905,9 +995,9 @@ contains
     associate(na => shape(a), nb => shape(b))
       if (all(na == nb)) then
          call self%assert(all(self%equal_tol(a, b, tol)), name, &
-              self%failure_reason(a, b))
+              self%failure(a, b))
       else
-         call self%assert(all(na == nb), name, self%failure_reason(a, b))
+         call self%assert(all(na == nb), name, self%failure(a, b))
       end if
     end associate
 
@@ -924,7 +1014,7 @@ contains
     character(len = *), intent(in), optional :: name !! Assertion name
 
     call self%assert(str_equal(a, b), name, &
-         self%failure_reason(a, b))
+         self%failure(a, b))
 
   end subroutine unit_test_assert_equal_string
 
@@ -940,9 +1030,9 @@ contains
     associate(na => size(a), nb => size(b))
       if (na == nb) then
          call self%assert(all(str_equal(a, b)), name, &
-              self%failure_reason(a, b))
+              self%failure(a, b))
       else
-         call self%assert(na == nb, name, self%failure_reason(a, b))
+         call self%assert(na == nb, name, self%failure(a, b))
       end if
     end associate
 
@@ -960,9 +1050,9 @@ contains
     associate(na => shape(a), nb => shape(b))
       if (all(na == nb)) then
          call self%assert(all(str_equal(a, b)), name, &
-              self%failure_reason(a, b))
+              self%failure(a, b))
       else
-         call self%assert(all(na == nb), name, self%failure_reason(a, b))
+         call self%assert(all(na == nb), name, self%failure(a, b))
       end if
     end associate
 
@@ -1001,6 +1091,19 @@ contains
     str = trim(adjustl(astr))
 
   end function unit_test_str_integer
+
+!------------------------------------------------------------------------
+
+  function unit_test_str_integer_pair(self, a) result(str)
+    !! Return string representation of integer array variable of size 2.
+
+    class(unit_test_type), intent(in out) :: self
+    integer, intent(in) :: a(2)
+    character(:), allocatable :: str
+
+    str = '[' // self%str(a(1)) // ', ' // self%str(a(2)) // ']'
+
+  end function unit_test_str_integer_pair
 
 !------------------------------------------------------------------------
 
@@ -1048,7 +1151,7 @@ contains
     complex, intent(in) :: a
     character(:), allocatable :: str
 
-    str = '(' // self%str(real(a)) // ', ' // self%str(aimag(a)) // ')'
+    str = '[' // self%str(real(a)) // ', ' // self%str(aimag(a)) // ']'
 
   end function unit_test_str_complex
 
@@ -1067,29 +1170,28 @@ contains
   end function unit_test_str_string
 
 !------------------------------------------------------------------------
-! Failure reason functions:
+! Failure functions:
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_logical(self, a, b) result(reason)
-    !! Return failure reason string for logical values.
+  type(assertion_failure_type) function unit_test_failure_logical(self, &
+       a, b) result(failure)
+    !! Return failure for logical values.
 
     class(unit_test_type), intent(in out) :: self
     logical, intent(in) :: a, b
-    character(:), allocatable :: reason
 
-    reason = self%str(a) // self%unequal_str // self%str(b)
+    call failure%init(self%str(a), self%str(b))
 
-  end function unit_test_failure_reason_logical
+  end function unit_test_failure_logical
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_logical_array_1(self, a, b) &
-       result(reason)
-    !! Return failure reason string for rank-1 logical array values.
+  type(assertion_failure_type) function unit_test_failure_logical_array_1(self, &
+       a, b) result(failure)
+    !! Return failure for rank-1 logical array values.
 
     class(unit_test_type), intent(in out) :: self
     logical, intent(in) :: a(:), b(:)
-    character(:), allocatable :: reason
     ! Locals:
     logical :: m(size(a))
     integer :: i, num
@@ -1100,29 +1202,24 @@ contains
          num = count(m)
          if (num > 0) then
             call first_false_index_1(m, i)
-            reason = self%failure_reason(a(i), b(i)) // " at index " // self%str(i)
-            if (num > 1) then
-               reason = reason // "; total " // self%str(num) // " differences"
-            end if
-         else
-            reason = ""
+            call failure%init(self%str(a(i)), self%str(b(i)), &
+                 scalar = .false., index = self%str(i), num = self%str(num))
          end if
       else
-         reason = "size (" // self%failure_reason(na, nb) // ")"
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
       end if
     end associate
 
-  end function unit_test_failure_reason_logical_array_1
+  end function unit_test_failure_logical_array_1
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_logical_array_2(self, a, b) &
-       result(reason)
-    !! Return failure reason string for rank-2 logical array values.
+  type(assertion_failure_type) function unit_test_failure_logical_array_2(self, &
+       a, b) result(failure)
+    !! Return failure for rank-2 logical array values.
 
     class(unit_test_type), intent(in out) :: self
     logical, intent(in) :: a(:,:), b(:,:)
-    character(:), allocatable :: reason
     ! Locals:
     logical :: m(size(a, 1), size(a, 2))
     integer :: ij(2), num
@@ -1133,43 +1230,37 @@ contains
          num = count(m)
          if (num > 0) then
             call first_false_index_2(m, ij)
-            reason = self%failure_reason(a(ij(1), ij(2)), b(ij(1), ij(2))) &
-                 // " at index (" // self%str(ij(1)) // ", " // self%str(ij(2)) // ")"
-            if (num > 1) then
-               reason = reason // "; total " // self%str(num) // " differences"
-            end if
-         else
-            reason = ""
+            call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
+                 scalar = .false., index = self%str(ij), num = self%str(num))
          end if
       else
-         reason = "shape (" // self%failure_reason(na, nb) // ")"
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
       end if
     end associate
 
-  end function unit_test_failure_reason_logical_array_2
+  end function unit_test_failure_logical_array_2
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_integer(self, a, b) result(reason)
-    !! Return failure reason string for integer values.
+  type(assertion_failure_type) function unit_test_failure_integer(self, &
+       a, b) result(failure)
+    !! Return failure for integer values.
 
     class(unit_test_type), intent(in out) :: self
     integer, intent(in) :: a, b
-    character(:), allocatable :: reason
 
-    reason = self%str(a) // self%unequal_str // self%str(b)
+    call failure%init(self%str(a), self%str(b))
     
-  end function unit_test_failure_reason_integer
+  end function unit_test_failure_integer
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_integer_array_1(self, a, b) &
-       result(reason)
-    !! Return failure reason string for rank-1 integer array values.
+  type(assertion_failure_type) function unit_test_failure_integer_array_1(self, &
+       a, b) result(failure)
+    !! Return failure for rank-1 integer array values.
 
     class(unit_test_type), intent(in out) :: self
     integer, intent(in) :: a(:), b(:)
-    character(:), allocatable :: reason
     ! Locals:
     logical :: m(size(a))
     integer :: i, num
@@ -1180,29 +1271,24 @@ contains
          num = count(m)
          if (num > 0) then
             call first_false_index_1(m, i)
-            reason = self%failure_reason(a(i), b(i)) // " at index " // self%str(i)
-            if (num > 1) then
-               reason = reason // "; total " // self%str(num) // " differences"
-            end if
-         else
-            reason = ""
+            call failure%init(self%str(a(i)), self%str(b(i)), &
+                 scalar = .false., index = self%str(i), num = self%str(num))
          end if
       else
-         reason = "size (" // self%failure_reason(na, nb) // ")"
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
       end if
     end associate
 
-  end function unit_test_failure_reason_integer_array_1
+  end function unit_test_failure_integer_array_1
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_integer_array_2(self, a, b) &
-       result(reason)
-    !! Return failure reason string for rank-2 integer array values.
+  type(assertion_failure_type) function unit_test_failure_integer_array_2(self, &
+       a, b) result(failure)
+    !! Return failure for rank-2 integer array values.
 
     class(unit_test_type), intent(in out) :: self
     integer, intent(in) :: a(:,:), b(:,:)
-    character(:), allocatable :: reason
     ! Locals:
     logical :: m(size(a, 1), size(a, 2))
     integer :: ij(2), num
@@ -1213,44 +1299,38 @@ contains
          num = count(m)
          if (num > 0) then
             call first_false_index_2(m, ij)
-            reason = self%failure_reason(a(ij(1), ij(2)), b(ij(1), ij(2))) &
-                 // " at index (" // self%str(ij(1)) // ", " // self%str(ij(2)) // ")"
-            if (num > 1) then
-               reason = reason // "; total " // self%str(num) // " differences"
-            end if
-         else
-            reason = ""
+            call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
+                 scalar = .false., index = self%str(ij), num = self%str(num))
          end if
       else
-         reason = "shape (" // self%failure_reason(na, nb) // ")"
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
       end if
     end associate
 
-  end function unit_test_failure_reason_integer_array_2
+  end function unit_test_failure_integer_array_2
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_real(self, a, b) result(reason)
-    !! Return failure reason string for real values.
+  type(assertion_failure_type) function unit_test_failure_real(self, &
+       a, b) result(failure)
+    !! Return failure for real values.
 
     class(unit_test_type), intent(in out) :: self
     real, intent(in) :: a, b
-    character(:), allocatable :: reason
 
-    reason = self%str(a) // self%unequal_str // self%str(b)
+    call failure%init(self%str(a), self%str(b))
     
-  end function unit_test_failure_reason_real
+  end function unit_test_failure_real
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_real_array_1(self, a, b, tol) &
-       result(reason)
-    !! Return failure reason string for rank-1 real array values.
+  type(assertion_failure_type) function unit_test_failure_real_array_1(self, &
+       a, b, tol) result(failure)
+    !! Return failure for rank-1 real array values.
 
     class(unit_test_type), intent(in out) :: self
     real, intent(in) :: a(:), b(:)
     real, intent(in), optional :: tol !! Tolerance
-    character(:), allocatable :: reason
     ! Locals:
     logical :: m(size(a))
     integer :: i, num
@@ -1261,30 +1341,25 @@ contains
          num = count(m)
          if (num > 0) then
             call first_false_index_1(m, i)
-            reason = self%failure_reason(a(i), b(i)) // " at index " // self%str(i)
-            if (num > 1) then
-               reason = reason // "; total " // self%str(num) // " differences"
-            end if
-         else
-            reason = ""
+            call failure%init(self%str(a(i)), self%str(b(i)), &
+                 scalar = .false., index = self%str(i), num = self%str(num))
          end if
       else
-         reason = "size (" // self%failure_reason(na, nb) // ")"
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
       end if
     end associate
 
-  end function unit_test_failure_reason_real_array_1
+  end function unit_test_failure_real_array_1
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_real_array_2(self, a, b, tol) &
-       result(reason)
-    !! Return failure reason string for rank-2 real array values.
+  type(assertion_failure_type) function unit_test_failure_real_array_2(self, &
+       a, b, tol) result(failure)
+    !! Return failure for rank-2 real array values.
 
     class(unit_test_type), intent(in out) :: self
     real, intent(in) :: a(:,:), b(:,:)
     real, intent(in), optional :: tol !! Tolerance
-    character(:), allocatable :: reason
     ! Locals:
     logical :: m(size(a, 1), size(a, 2))
     integer :: ij(2), num
@@ -1295,44 +1370,38 @@ contains
          num = count(m)
          if (num > 0) then
             call first_false_index_2(m, ij)
-            reason = self%failure_reason(a(ij(1), ij(2)), b(ij(1), ij(2))) &
-                 // " at index (" // self%str(ij(1)) // ", " // self%str(ij(2)) // ")"
-            if (num > 1) then
-               reason = reason // "; total " // self%str(num) // " differences"
-            end if
-         else
-            reason = ""
+            call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
+                 scalar = .false., index = self%str(ij), num = self%str(num))
          end if
       else
-         reason = "shape (" // self%failure_reason(na, nb) // ")"
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
       end if
     end associate
 
-  end function unit_test_failure_reason_real_array_2
+  end function unit_test_failure_real_array_2
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_double(self, a, b) result(reason)
-    !! Return failure reason string for double precision values.
+  type(assertion_failure_type) function unit_test_failure_double(self, &
+       a, b) result(failure)
+    !! Return failure for double precision values.
 
     class(unit_test_type), intent(in out) :: self
     real(dp), intent(in) :: a, b
-    character(:), allocatable :: reason
 
-    reason = self%str(a) // self%unequal_str // self%str(b)
+    call failure%init(self%str(a), self%str(b))
     
-  end function unit_test_failure_reason_double
+  end function unit_test_failure_double
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_double_array_1(self, a, b, tol) &
-       result(reason)
-    !! Return failure reason string for rank-1 double precision array values.
+  type(assertion_failure_type) function unit_test_failure_double_array_1(self, &
+       a, b, tol) result(failure)
+    !! Return failure for rank-1 double precision array values.
 
     class(unit_test_type), intent(in out) :: self
     real(dp), intent(in) :: a(:), b(:)
     real(dp), intent(in), optional :: tol !! Tolerance
-    character(:), allocatable :: reason
     ! Locals:
     logical :: m(size(a))
     integer :: i, num
@@ -1343,30 +1412,25 @@ contains
          num = count(m)
          if (num > 0) then
             call first_false_index_1(m, i)
-            reason = self%failure_reason(a(i), b(i)) // " at index " // self%str(i)
-            if (num > 1) then
-               reason = reason // "; total " // self%str(num) // " differences"
-            end if
-         else
-            reason = ""
+            call failure%init(self%str(a(i)), self%str(b(i)), &
+                 scalar = .false., index = self%str(i), num = self%str(num))
          end if
       else
-         reason = "size (" // self%failure_reason(na, nb) // ")"
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
       end if
     end associate
 
-  end function unit_test_failure_reason_double_array_1
+  end function unit_test_failure_double_array_1
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_double_array_2(self, a, b, tol) &
-       result(reason)
-    !! Return failure reason string for rank-2 double precision array values.
+  type(assertion_failure_type) function unit_test_failure_double_array_2(self, &
+       a, b, tol) result(failure)
+    !! Return failure for rank-2 double precision array values.
 
     class(unit_test_type), intent(in out) :: self
     real(dp), intent(in) :: a(:,:), b(:,:)
     real(dp), intent(in), optional :: tol !! Tolerance
-    character(:), allocatable :: reason
     ! Locals:
     logical :: m(size(a, 1), size(a, 2))
     integer :: ij(2), num
@@ -1377,44 +1441,38 @@ contains
          num = count(m)
          if (num > 0) then
             call first_false_index_2(m, ij)
-            reason = self%failure_reason(a(ij(1), ij(2)), b(ij(1), ij(2))) &
-                 // " at index (" // self%str(ij(1)) // ", " // self%str(ij(2)) // ")"
-            if (num > 1) then
-               reason = reason // "; total " // self%str(num) // " differences"
-            end if
-         else
-            reason = ""
+            call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
+                 scalar = .false., index = self%str(ij), num = self%str(num))
          end if
       else
-         reason = "shape (" // self%failure_reason(na, nb) // ")"
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
       end if
     end associate
 
-  end function unit_test_failure_reason_double_array_2
+  end function unit_test_failure_double_array_2
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_complex(self, a, b) result(reason)
-    !! Return failure reason string for complex values.
+  type(assertion_failure_type) function unit_test_failure_complex(self, &
+       a, b) result(failure)
+    !! Return failure for complex values.
 
     class(unit_test_type), intent(in out) :: self
     complex, intent(in) :: a, b
-    character(:), allocatable :: reason
 
-    reason = self%str(a) // self%unequal_str // self%str(b)
+    call failure%init(self%str(a), self%str(b))
     
-  end function unit_test_failure_reason_complex
+  end function unit_test_failure_complex
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_complex_array_1(self, a, b, tol) &
-       result(reason)
-    !! Return failure reason string for rank-1 complex array values.
+  type(assertion_failure_type) function unit_test_failure_complex_array_1(self, &
+       a, b, tol) result(failure)
+    !! Return failure for rank-1 complex array values.
 
     class(unit_test_type), intent(in out) :: self
     complex, intent(in) :: a(:), b(:)
     real, intent(in), optional :: tol !! Tolerance
-    character(:), allocatable :: reason
     ! Locals:
     logical :: m(size(a))
     integer :: i, num
@@ -1425,30 +1483,25 @@ contains
          num = count(m)
          if (num > 0) then
             call first_false_index_1(m, i)
-            reason = self%failure_reason(a(i), b(i)) // " at index " // self%str(i)
-            if (num > 1) then
-               reason = reason // "; total " // self%str(num) // " differences"
-            end if
-         else
-            reason = ""
+            call failure%init(self%str(a(i)), self%str(b(i)), &
+                 scalar = .false., index = self%str(i), num = self%str(num))
          end if
       else
-         reason = "size (" // self%failure_reason(na, nb) // ")"
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
       end if
     end associate
 
-  end function unit_test_failure_reason_complex_array_1
+  end function unit_test_failure_complex_array_1
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_complex_array_2(self, a, b, tol) &
-       result(reason)
-    !! Return failure reason string for rank-2 complex array values.
+  type(assertion_failure_type) function unit_test_failure_complex_array_2(self, &
+       a, b, tol) result(failure)
+    !! Return failure for rank-2 complex array values.
 
     class(unit_test_type), intent(in out) :: self
     complex, intent(in) :: a(:,:), b(:,:)
     real, intent(in), optional :: tol !! Tolerance
-    character(:), allocatable :: reason
     ! Locals:
     logical :: m(size(a, 1), size(a, 2))
     integer :: ij(2), num
@@ -1459,43 +1512,37 @@ contains
          num = count(m)
          if (num > 0) then
             call first_false_index_2(m, ij)
-            reason = self%failure_reason(a(ij(1), ij(2)), b(ij(1), ij(2))) &
-                 // " at index (" // self%str(ij(1)) // ", " // self%str(ij(2)) // ")"
-            if (num > 1) then
-               reason = reason // "; total " // self%str(num) // " differences"
-            end if
-         else
-            reason = ""
+            call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
+                 scalar = .false., index = self%str(ij), num = self%str(num))
          end if
       else
-         reason = "shape (" // self%failure_reason(na, nb) // ")"
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
       end if
     end associate
 
-  end function unit_test_failure_reason_complex_array_2
+  end function unit_test_failure_complex_array_2
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_string(self, a, b) result(reason)
-    !! Return failure reason string for string values.
+  type(assertion_failure_type) function unit_test_failure_string(self, &
+       a, b) result(failure)
+    !! Return failure for string values.
 
     class(unit_test_type), intent(in out) :: self
     character(len = *), intent(in) :: a, b
-    character(:), allocatable :: reason
 
-    reason = self%str(a) // self%unequal_str // self%str(b)
+    call failure%init(self%str(a), self%str(b))
     
-  end function unit_test_failure_reason_string
+  end function unit_test_failure_string
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_string_array_1(self, a, b) &
-       result(reason)
-    !! Return failure reason string for rank-1 string array values.
+  type(assertion_failure_type) function unit_test_failure_string_array_1(self, &
+       a, b) result(failure)
+    !! Return failure for rank-1 string array values.
 
     class(unit_test_type), intent(in out) :: self
     character(len = *), intent(in) :: a(:), b(:)
-    character(:), allocatable :: reason
     ! Locals:
     logical :: m(size(a))
     integer :: i, num
@@ -1506,29 +1553,24 @@ contains
          num = count(m)
          if (num > 0) then
             call first_false_index_1(m, i)
-            reason = self%failure_reason(a(i), b(i)) // " at index " // self%str(i)
-            if (num > 1) then
-               reason = reason // "; total " // self%str(num) // " differences"
-            end if
-         else
-            reason = ""
+            call failure%init(self%str(a(i)), self%str(b(i)), &
+                 scalar = .false., index = self%str(i), num = self%str(num))
          end if
       else
-         reason = "size (" // self%failure_reason(na, nb) // ")"
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
       end if
     end associate
 
-  end function unit_test_failure_reason_string_array_1
+  end function unit_test_failure_string_array_1
 
 !------------------------------------------------------------------------
 
-  function unit_test_failure_reason_string_array_2(self, a, b) &
-       result(reason)
-    !! Return failure reason string for rank-2 string array values.
+  type(assertion_failure_type) function unit_test_failure_string_array_2(self, &
+       a, b) result(failure)
+    !! Return failure for rank-2 string array values.
 
     class(unit_test_type), intent(in out) :: self
     character(len = *), intent(in) :: a(:,:), b(:,:)
-    character(:), allocatable :: reason
     ! Locals:
     logical :: m(size(a, 1), size(a, 2))
     integer :: ij(2), num
@@ -1539,20 +1581,15 @@ contains
          num = count(m)
          if (num > 0) then
             call first_false_index_2(m, ij)
-            reason = self%failure_reason(a(ij(1), ij(2)), b(ij(1), ij(2))) &
-                 // " at index (" // self%str(ij(1)) // ", " // self%str(ij(2)) // ")"
-            if (num > 1) then
-               reason = reason // "; total " // self%str(num) // " differences"
-            end if
-         else
-            reason = ""
+            call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
+                 scalar = .false., index = self%str(ij), num = self%str(num))
          end if
       else
-         reason = "shape (" // self%failure_reason(na, nb) // ")"
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
       end if
     end associate
 
-  end function unit_test_failure_reason_string_array_2
+  end function unit_test_failure_string_array_2
 
 !------------------------------------------------------------------------
 
