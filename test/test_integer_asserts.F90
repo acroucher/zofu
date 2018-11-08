@@ -27,10 +27,16 @@ program test_integer_asserts
   call test%run(test_integer_array_1_fail)
   call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
+  call test%run(test_integer_array_1_fail_different_sizes)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
+
   call test%run(test_integer_array_2_pass)
   call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
   call test%run(test_integer_array_2_fail)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
+
+  call test%run(test_integer_array_2_fail_different_shape)
   call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
   call test%summary()
@@ -59,6 +65,11 @@ contains
     call test%assert([-1, 2, 7], [-1, 2, -7])
   end subroutine test_integer_array_1_fail
 
+  subroutine test_integer_array_1_fail_different_sizes(test)
+    class(unit_test_type), intent(in out) :: test
+    call test%assert([-1, 2, 7], [-1, 2, -7, 5])
+  end subroutine test_integer_array_1_fail_different_sizes
+
   subroutine test_integer_array_2_pass(test)
     class(unit_test_type), intent(in out) :: test
     call test%assert( &
@@ -73,4 +84,11 @@ contains
          reshape([1, 2, 2, 4, 5, 6], [3, 2]))
   end subroutine test_integer_array_2_fail
   
+  subroutine test_integer_array_2_fail_different_shape(test)
+    class(unit_test_type), intent(in out) :: test
+    call test%assert( &
+         reshape([1, 2, 3, 4, 5, 6], [3, 2]), &
+         reshape([1, 2, 3, 4, 5, 6], [2, 3]))
+  end subroutine test_integer_array_2_fail_different_shape
+
 end program test_integer_asserts

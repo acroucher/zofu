@@ -18,6 +18,9 @@ program test_string_asserts
   call test%run(test_str_pass)
   call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
+  call test%run(test_str_fail)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
+
   call test%run(test_str_pass_unequal_lengths)
   call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
@@ -28,6 +31,9 @@ program test_string_asserts
   call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
   call test%run(test_str_array_1_fail)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
+
+  call test%run(test_str_array_1_fail_different_lengths)
   call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
   call test%run(test_str_array_2_pass)
@@ -46,6 +52,11 @@ contains
     class(unit_test_type), intent(in out) :: test
     call test%assert("foo", "foo")
   end subroutine test_str_pass
+
+  subroutine test_str_fail(test)
+    class(unit_test_type), intent(in out) :: test
+    call test%assert("foo", "foobar")
+  end subroutine test_str_fail
 
   subroutine test_str_pass_unequal_lengths(test)
     class(unit_test_type), intent(in out) :: test
@@ -66,6 +77,11 @@ contains
     class(unit_test_type), intent(in out) :: test
     call test%assert(["a  ", "b  "], ["a  ", "ab "])
   end subroutine test_str_array_1_fail
+
+  subroutine test_str_array_1_fail_different_lengths(test)
+    class(unit_test_type), intent(in out) :: test
+    call test%assert(["a  ", "b  "], ["a ", "b ", "ab"])
+  end subroutine test_str_array_1_fail_different_lengths
 
   subroutine test_str_array_2_pass(test)
     class(unit_test_type), intent(in out) :: test

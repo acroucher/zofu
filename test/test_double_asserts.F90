@@ -42,6 +42,9 @@ program test_double_asserts
   call test%run(test_double_array_fail)
   call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
+  call test%run(test_double_array_fail_different_sizes)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
+
   call test%run(test_double_array_2_pass)
   call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
@@ -99,6 +102,12 @@ contains
     call test%assert([2.718_dp, -3.142_dp, 1.618_dp], &
          [2.718_dp, -3.141_dp, 1.618_dp])
   end subroutine test_double_array_fail
+
+  subroutine test_double_array_fail_different_sizes(test)
+    class(unit_test_type), intent(in out) :: test
+    call test%assert([2.718_dp, -3.142_dp], &
+         [2.718_dp, -3.142_dp, 1.01_dp])
+  end subroutine test_double_array_fail_different_sizes
 
   subroutine test_double_array_2_pass(test)
     class(unit_test_type), intent(in out) :: test

@@ -42,6 +42,9 @@ program test_real_asserts
   call test%run(test_real_array_1_fail)
   call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
+  call test%run(test_real_array_1_fail_different_sizes)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
+
   call test%run(test_real_array_2_pass)
   call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
@@ -98,6 +101,11 @@ contains
     class(unit_test_type), intent(in out) :: test
     call test%assert([2.718, -3.142, 1.618], [2.718, -3.141, 1.618])
   end subroutine test_real_array_1_fail
+
+  subroutine test_real_array_1_fail_different_sizes(test)
+    class(unit_test_type), intent(in out) :: test
+    call test%assert([2.718, -3.142], [2.718, -3.142, 1.01])
+  end subroutine test_real_array_1_fail_different_sizes
 
   subroutine test_real_array_2_pass(test)
     class(unit_test_type), intent(in out) :: test

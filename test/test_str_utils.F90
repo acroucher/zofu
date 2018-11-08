@@ -34,6 +34,15 @@ program test_str_utils
   test = (str_endswith(a, "fox") .eqv. .true.)
   OK = (OK .and. test)
   
+  test = (str_strip_real_trailing_zeros("0.1000") == "0.1")
+  OK = (OK .and. test)
+
+  test = (str_strip_real_trailing_zeros("-21.7010") == "-21.701")
+  OK = (OK .and. test)
+
+  test = (str_strip_real_trailing_zeros("0.0") == "0.")
+  OK = (OK .and. test)
+
   if (.not. OK) stop 1
   
 end program test_str_utils

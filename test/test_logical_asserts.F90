@@ -36,6 +36,9 @@ program test_logical_asserts
   call test%run(test_logical_array_1_fail)
   call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
 
+  call test%run(test_logical_array_1_fail_different_sizes)
+  call check(test, last_cases, last_assertions, 1, 1, 0, 1, OK)
+
   call test%run(test_logical_array_2_pass)
   call check(test, last_cases, last_assertions, 1, 1, 1, 0, OK)
 
@@ -81,8 +84,14 @@ contains
   subroutine test_logical_array_1_fail(test)
     class(unit_test_type), intent(in out) :: test
     call test%assert([.true., .false., .true.], &
-         [.true., .true., .true.])
+         [.true., .true., .false.])
   end subroutine test_logical_array_1_fail
+
+  subroutine test_logical_array_1_fail_different_sizes(test)
+    class(unit_test_type), intent(in out) :: test
+    call test%assert([.true., .false., .true.], &
+         [.true., .false., .true., .false.])
+  end subroutine test_logical_array_1_fail_different_sizes
 
   subroutine test_logical_array_2_pass(test)
     class(unit_test_type), intent(in out) :: test
