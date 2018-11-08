@@ -103,6 +103,8 @@ The YAML output from a failed assertion (in the "failed assertions" array) is it
 - "count": for array values, the total number of elements which were not equal
 - "rank": for tests parallelized with MPI, the processor rank of the failed assertion
 
+(Note that the "failed assertions" array will be empty if the test passed.)
+
 At the end of the test two further dictionaries are output, "cases" and "assertions", which summarise the total counts of cases and assertions, as well as how many passed and failed. Finally, the "passed" Boolean value records whether the test passed.
 
 # Running multiple tests
