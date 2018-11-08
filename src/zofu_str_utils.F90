@@ -4,7 +4,8 @@ module zofu_str_utils
   implicit none
   private
 
-  public :: str_equal, str_lower, str_startswith, str_endswith
+  public :: str_equal, str_lower, str_startswith, str_endswith, &
+       str_strip_real_trailing_zeros
 
 contains
 
@@ -61,5 +62,33 @@ contains
   end function str_endswith
 
 !------------------------------------------------------------------------
-  
+
+  function str_strip_real_trailing_zeros(a) result(str)
+    !! Strips trailing zeros from string representing a real number.
+
+    character(len = *), intent(in) :: a
+    character(:), allocatable :: str
+    ! Locals:
+    integer :: i, dotpos
+    character(len = len(a)) :: b
+
+    b = a
+    dotpos = index(b, '.')
+    if (dotpos > 0) then
+       do i = len(b), dotpos + 1, -1
+          if (b(i:i) /= ' ') then
+             if (b(i:i) == '0') then
+                b(i:i) = ' '
+             else
+                exit
+             end if
+          end if
+       end do
+    end if
+    str = trim(adjustl(b))
+
+  end function str_strip_real_trailing_zeros
+
+!------------------------------------------------------------------------
+
 end module zofu_str_utils
