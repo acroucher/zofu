@@ -256,6 +256,10 @@ test(test_name, unit_test, is_parallel: false)
 
 otherwise Meson will by default attempt to run different tests on different processes at the same time.
 
+# Documentation
+
+This readme page is the main user documentation. In addition, it is possible to build HTML pages detailing the Zofu library API using the [FORD](https://github.com/Fortran-FOSS-Programmers/ford) documentation tool. Typing `ford doc.md` at the command line in the main Zofu directory will generate a `doc/` subdirectory containing a main HTML page `index.html`, which may be viewed in a web browser.
+
 # Licensing
 
 Zofu is open-source software, licensed under the GNU Lesser General Public License (LGPL).
