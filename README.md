@@ -93,6 +93,18 @@ The driver program can then be compiled and linked to the unit test module and t
 
 As it runs, a Zofu test program will also write details of any failed assertions to the standard output, together with a summary of all cases and assertions at the end of the test. The output is in [YAML](http://yaml.org/) format, so it can be redirected to a file and parsed with scripts if required.
 
+Here is the YAML output from an example (failed) test:
+
+```yaml
+failed assertions:
+- {"case": "foo", "assertion": "fred", "reason": "value", "values": [1, -2]}
+- {"case": "bar", "assertion": "mary", "reason": "value", "values": [7., -7.01], "index": 3, "count": 1}
+- {"case": "bar", "assertion": "eric", "reason": "shape", "values": [3, 4]}
+cases: {"count": 8, "passed": 7, "failed": 2}
+assertions: {"count": 12, "passed": 9, "failed": 3}
+passed: false
+```
+
 The YAML output from a failed assertion (in the "failed assertions" array) is itself a dictionary which may contain the following keys:
 
 - "case": the number or name of the case
