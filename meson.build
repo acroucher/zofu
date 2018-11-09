@@ -14,7 +14,8 @@ prefix = get_option('prefix')
 libdir = get_option('libdir')
 
 src_dir = join_paths(meson.current_source_dir(), 'src')
-zofu_modules = ['zofu.F90', 'zofu_str_utils.F90', 'zofu_scan.F90']
+zofu_modules = ['zofu_kinds.F90', 'zofu.F90',
+                'zofu_str_utils.F90', 'zofu_scan.F90']
 if mpi.found()
   zofu_modules += ['zofu_mpi.F90']
 endif

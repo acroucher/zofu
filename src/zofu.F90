@@ -19,12 +19,11 @@ module zofu
 
   !! Zofu (Zofu is Object-oriented Fortran Unit-testing) unit test type.
 
+  use zofu_kinds
   use zofu_str_utils
 
   implicit none
   private
-
-  integer, parameter, public :: dp = kind(0.d0) !! double precision kind
 
   integer, parameter :: FAILURE_REASON_VALUE = 1, FAILURE_REASON_SHAPE = 2 !! assertion failure reasons
 

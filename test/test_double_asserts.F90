@@ -2,6 +2,7 @@ program test_double_asserts
 
   ! Test Zofu double precision asserts.
 
+  use zofu_kinds
   use zofu
   use check_module
 
