@@ -173,15 +173,15 @@ Zofu can be installed as follows:
 ninja -C build install
 ```
 
-By default this will install Zofu to a standard location, e.g. `/usr/local/lib` on Linux (for which you will generally need administrator privileges) . If you want to install it somewhere else, you can specify a 'prefix' using the `--prefix` and `--libdir` options at configure time, e.g.:
+By default this will install the Zofu shared library to a standard location, e.g. `/usr/local/lib` on Linux (for which you will generally need administrator privileges) . If you want to install it somewhere else, you can specify a 'prefix' using the `--prefix` and `--libdir` options at configure time, e.g.:
 
 ```
 meson build --prefix=/home/bob/ --libdir=lib
 ```
 
-would configure Zofu to install into the `/home/bob/lib` directory.
+would configure Zofu to install into the `/home/bob/lib` directory. The `zofu-driver` utility will similary be installed by default to the `bin` subdirectory after the prefix; the subdirectory name can be changed using the `--bindir` option.
 
-The Fortran module files (e.g. *.mod for the gfortran compiler) will also be installed (to make them available when building your test code), by default to the `include` subdirectory after the prefix. If you want to install the module files somewhere else, you can specify the `includedir` option at configure time, e.g.:
+The Fortran module files (e.g. *.mod for the gfortran compiler) will also be installed (to make them available when building your test code), by default to the `include` subdirectory after the prefix. If you want to install the module files somewhere else, you can specify the `--includedir` option at configure time, e.g.:
 
 ```
 meson build --prefix=/home/bob/ --libdir=lib --includedir=finclude/zofu
