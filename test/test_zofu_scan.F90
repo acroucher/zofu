@@ -49,7 +49,7 @@ contains
     call subroutine_role_test(test, "test_setup", SUB_ROLE_TEST)
     call subroutine_role_test(test, "test_teardown", SUB_ROLE_TEST)
     call subroutine_role_test(test, "foo_test", SUB_ROLE_UNKNOWN)
-    call subroutine_role_test(test, "setup_test", SUB_ROLE_UNKNOWN)
+    call subroutine_role_test(test, "setup_test", SUB_ROLE_SETUP_TEST)
     call subroutine_role_test(test, "setup_bar", SUB_ROLE_UNKNOWN)
 
   end subroutine test_subroutine_roles

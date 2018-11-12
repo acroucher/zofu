@@ -24,7 +24,7 @@ module zofu_scan
   private
 
   integer, parameter, public :: SUB_ROLE_UNKNOWN = 0, SUB_ROLE_TEST = 1, &
-       SUB_ROLE_SETUP = 2, SUB_ROLE_TEARDOWN = 3
+       SUB_ROLE_SETUP = 2, SUB_ROLE_TEARDOWN = 3, SUB_ROLE_SETUP_TEST = 4
   integer, parameter :: max_parsed_line_length = 256 !! maximum parsed line length
 
   type, public :: test_subroutine_type
@@ -60,6 +60,7 @@ module zofu_scan
      logical, public :: mpi !! If tests are parallelized using MPI
      type(subroutine_list_type), public :: test_subroutines !! List of test subroutines
      logical, public :: setup, teardown !! Whether module has setup / teardown routines
+     logical, public :: setup_test !! Whether module has test setup routine
      integer :: unit !! File unit
    contains
      private
@@ -91,6 +92,8 @@ contains
        role = SUB_ROLE_SETUP
     else if (lowername == 'teardown') then
        role = SUB_ROLE_TEARDOWN
+    else if (lowername == 'setup_test') then
+       role = SUB_ROLE_SETUP_TEST
     else if (str_startswith(lowername, 'test_')) then
        role = SUB_ROLE_TEST
     else
@@ -195,6 +198,7 @@ contains
 
     self%setup = .false.
     self%teardown = .false.
+    self%setup_test = .false.
     call self%test_subroutines%init()
 
     ierr = self%parse()
@@ -256,6 +260,8 @@ contains
        self%setup = .true.
     case (SUB_ROLE_TEARDOWN)
        self%teardown = .true.
+    case (SUB_ROLE_SETUP_TEST)
+       self%setup_test = .true.
     case (SUB_ROLE_TEST)
        call self%test_subroutines%append(name, description)
     end select
@@ -395,6 +401,9 @@ contains
        write(unit, '(a/)') "  call setup()"
     end if
     write(unit, '(a/)') "  call test%init()"
+    if (self%setup_test) then
+       write(unit, '(a/)') "  call setup_test(test)"
+    end if
 
     sub => self%test_subroutines%head
     if (associated(sub)) then

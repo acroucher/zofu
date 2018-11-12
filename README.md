@@ -55,7 +55,7 @@ asserts that the logical variable `OK` (declared in the test case subroutine) is
 
 asserts that the two variables `x` and `y` are equal. These variables could be of any of the types listed above.
 
-For `real`, `double precision` or `complex` variables, equality is defined up to a given tolerance. Each unit test object has a built-in default tolerance given by its `tolerance` property. This is a relative tolerance (not absolute) and set by default at 1e-6. For a particular assertion the default tolerance can be overridden by adding a `tol` argument to the `assert()` method, e.g.:
+For floating point (`real`, `double precision` or `complex`) variables, equality is defined up to a given tolerance. Each unit test object has a built-in default tolerance given by its `tolerance` property. This is a relative tolerance (not absolute) and set by default at 1e-6. For a particular assertion the default tolerance can be overridden by adding a `tol` argument to the `assert()` method, e.g.:
 
 ```fortran
   call test%assert(x, y, tol = 1.e-9)
@@ -74,6 +74,22 @@ The `assert()` method can also take an optional `name` argument. This is a chara
 Each module may optionally contain special subroutines called `setup` and `teardown`. The `setup` subroutine is called before any tests are run, and the `teardown` routine is called after all tests are finished.
 
 These can be used to initialize and finalize global variables or other settings for the test. Unlike the test case subroutines, they do not take the unit test object (or any other variables) as an argument.
+
+### Test setup routine
+
+Each module may also contain another optional special subroutine called `setup_test`, which will be called after the test is initialized but before any test cases are run. It can be used for modifying properties of the test, e.g. the default tolerance for floating point equality tests. The test object must be passed in to this subroutine, in the same way as it is passed in to the test case subroutines. In the example below:
+
+```fortran
+  subroutine setup_test(test)
+
+    class(unit_test_type), intent(in out) :: test
+
+    test%tolerance = 1.e-8
+
+  end subroutine setup_test
+```
+
+the default floating point equality tolerance is set to 1e-8.
 
 # Driver programs
 
