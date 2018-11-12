@@ -69,9 +69,9 @@ contains
     logical :: global_case_failure
     integer :: ierr
 
-    call mpi_reduce(self%case_assertions%failed > 0, &
+    call mpi_allreduce(self%case_assertions%failed > 0, &
          global_case_failure, 1, &
-         MPI_LOGICAL, MPI_LOR, 0, MPI_COMM_WORLD, ierr)
+         MPI_LOGICAL, MPI_LOR, MPI_COMM_WORLD, ierr)
 
     if (global_case_failure) then
        call self%cases%fail()
