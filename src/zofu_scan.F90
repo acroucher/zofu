@@ -390,10 +390,10 @@ contains
     end if
     write(unit, '(a, a, a/)') "  type(", test_type, ") :: test"
 
-    write(unit, '(a/)') "  call test%init()"
     if (self%setup) then
        write(unit, '(a/)') "  call setup()"
     end if
+    write(unit, '(a/)') "  call test%init()"
 
     sub => self%test_subroutines%head
     if (associated(sub)) then
