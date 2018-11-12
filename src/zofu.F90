@@ -71,8 +71,8 @@ module zofu
      character(:), allocatable, public :: format_real !! Format for real variables
      character(:), allocatable, public :: format_real_scientific !! Format for real variables in scientific notation
      character, public :: quote_str !! Quote mark character for string output
-     real :: tolerance !! Default relative tolerance for testing floating point equality
-     real :: minimum_scale !! Minimum scale for testing floating point equality
+     real, public :: tolerance !! Default relative tolerance for testing floating point equality
+     real, public :: minimum_scale !! Minimum scale for testing floating point equality
      character(:), allocatable :: case_name !! Name of last case run
    contains
      procedure, public :: init => unit_test_init
