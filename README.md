@@ -77,7 +77,7 @@ These can be used to initialize and finalize global variables or other settings 
 
 ### Test setup routine
 
-Each module may also contain another optional special subroutine called `setup_test`, which will be called after the test is initialized but before any test cases are run. It can be used for modifying properties of the test, e.g. the default tolerance for floating point equality tests. The test object must be passed in to this subroutine, in the same way as it is passed in to the test case subroutines. In the example below:
+Each module may also contain another optional special subroutine called `setup_test`, to be called after the test is initialized but before any test cases are run. It can be used for modifying properties of the test, e.g. the default tolerance for floating point equality tests. The test object must be passed in to this subroutine, in the same way as it is passed in to the test case subroutines. In the example below:
 
 ```fortran
   subroutine setup_test(test)
@@ -93,7 +93,7 @@ the default floating point equality tolerance is set to 1e-8.
 
 # Driver programs
 
-Once a unit test module has been written, the `zofu-driver` utility can be used to create the Fortran source code for a driver program which calls all test case subroutines in the test module. The driver program source also contains the appropriate `use` statements, declares a unit test object, and calls any `setup` and `teardown` routines at the start and end of the test.
+Once a unit test module has been written, the `zofu-driver` utility can be used to create the Fortran source code for a driver program which calls all test case subroutines in the test module. The driver program source also contains the appropriate `use` statements, declares a unit test object, and calls any `setup`, `setup_test` or `teardown` routines at the start and end of the test.
 
 The `zofu-driver` utility can be called from the command line as follows:
 
