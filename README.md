@@ -143,7 +143,7 @@ Some unit testing systems create a single driver program which runs all tests in
 
 # Parallel unit tests using MPI
 
-Zofu can test modules that are parallelized using MPI. In this case, there is a modified derived type for the unit test, `unit_test_mpi_type` (which extends `unit_test_type`). This is in a separate Zofu module, `zofu_mpi`, so the test module must include the statement:
+Zofu can test modules that are parallelized using MPI. In this case, there is a modified derived type for the unit test, `unit_test_mpi_type` (which extends `unit_test_type`). This is in a separate Zofu module, `zofu_mpi`, so the test driver program must include the statement:
 
 ```fortran
 use zofu_mpi
@@ -155,7 +155,9 @@ and the test object is declared as follows:
 type(unit_test_mpi_type) :: test
 ```
 
-Note however that the test case subroutine interface is the same as for serial unit tests:
+If you use the `zofu-driver` utility to generate your test driver program then using the `--mpi` switch will take care of this for you.
+
+Note that the test module should still `use zofu`, and the test case subroutine interface is the same as for serial unit tests:
 
 ```fortran
 subroutine test_parallel_foo(test)
