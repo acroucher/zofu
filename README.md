@@ -139,13 +139,15 @@ and the test object is declared as follows:
 type(unit_test_mpi_type) :: test
 ```
 
-Similarly, the test case subroutines must be of the form:
+Note however that the test case subroutine interface is the same as for serial unit tests:
 
 ```fortran
-subroutine test_foo(test)
+subroutine test_parallel_foo(test)
 
-  class(unit_test_mpi_type), intent(in out) :: test
+  class(unit_test_type), intent(in out) :: test
 ```
+
+This works because `unit_test_mpi_type` extends `unit_test_type`, so is still of that class. (In fact it is necessary to keep the test case subroutine interface the same for both serial and parallel unit test cases, so declaring the test as `class(unit_test_mpi_type)` in your parallel test case will not work.)
 
 The same `zofu-driver` utility may be used to write MPI test driver programs, by using the `--mpi` switch on the command line, e.g.:
 
