@@ -155,7 +155,11 @@ and the test object is declared as follows:
 type(unit_test_mpi_type) :: test
 ```
 
-If you use the `zofu-driver` utility to generate your test driver program then using the `--mpi` switch will take care of this for you.
+If you use the `zofu-driver` utility to generate your test driver program then using the `--mpi` switch will take care of this for you:
+
+```
+zofu-driver module driver --mpi
+```
 
 Note that the test module should still `use zofu`, and the test case subroutine interface is the same as for serial unit tests:
 
@@ -166,12 +170,6 @@ subroutine test_parallel_foo(test)
 ```
 
 This works because `unit_test_mpi_type` extends `unit_test_type`, so is still of that class. (In fact it is necessary to keep the test case subroutine interface the same for both serial and parallel unit test cases, so declaring the test as `class(unit_test_mpi_type)` in your parallel test case will not work.)
-
-The same `zofu-driver` utility may be used to write MPI test driver programs, by using the `--mpi` switch on the command line, e.g.:
-
-```
-zofu-driver module driver --mpi
-```
 
 The setup and teardown routines in each test module should include commands for initializing and finalizing MPI, e.g. `mpi_init()` in the `setup()` routine, and `mpi_finalize()` in the `teardown()` routine.
 
