@@ -916,15 +916,15 @@ contains
 
 !------------------------------------------------------------------------
 
-  subroutine unit_test_assert_equal_double_array_2(self, a, b, tol, name)
+  subroutine unit_test_assert_equal_double_array_2(self, a, b, name, tol)
     !! Assert specified double precision rank-2 arrays are equal to
     !! within the specified relative tolerance. If no tolerance is
     !! specified, the test default value is used.
 
     class(unit_test_type), intent(in out) :: self
     real(dp), intent(in) :: a(:,:), b(:,:) !! Value to compare
-    real(dp), intent(in), optional :: tol !! Tolerance
     character(len = *), intent(in), optional :: name !! Assertion name
+    real(dp), intent(in), optional :: tol !! Tolerance
 
     associate(na => shape(a), nb => shape(b))
       if (all(na == nb)) then
