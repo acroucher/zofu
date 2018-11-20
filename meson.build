@@ -30,6 +30,8 @@ zofu = shared_library('zofu',
                       dependencies: mpi,
                       install: true)
 
+zofu_dep = declare_dependency(link_with : zofu)
+
 driver_exe = executable(
   'zofu-driver',
   join_paths(src_dir, 'zofu_driver.F90'),
