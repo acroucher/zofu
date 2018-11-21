@@ -98,6 +98,9 @@ module zofu
      procedure :: unit_test_assert_equal_integer
      procedure :: unit_test_assert_equal_integer_array_1
      procedure :: unit_test_assert_equal_integer_array_2
+     procedure :: unit_test_assert_equal_long_integer
+     procedure :: unit_test_assert_equal_long_integer_array_1
+     procedure :: unit_test_assert_equal_long_integer_array_2
      procedure :: unit_test_assert_equal_real
      procedure :: unit_test_assert_equal_real_array_1
      procedure :: unit_test_assert_equal_real_array_2
@@ -118,6 +121,9 @@ module zofu
           unit_test_assert_equal_integer, &
           unit_test_assert_equal_integer_array_1, &
           unit_test_assert_equal_integer_array_2, &
+          unit_test_assert_equal_long_integer, &
+          unit_test_assert_equal_long_integer_array_1, &
+          unit_test_assert_equal_long_integer_array_2, &
           unit_test_assert_equal_real, &
           unit_test_assert_equal_real_array_1, &
           unit_test_assert_equal_real_array_2, &
@@ -132,6 +138,7 @@ module zofu
           unit_test_assert_equal_string_array_2
      procedure :: unit_test_str_logical
      procedure :: unit_test_str_integer
+     procedure :: unit_test_str_long_integer
      procedure :: unit_test_str_integer_pair
      procedure :: unit_test_str_real
      procedure :: unit_test_str_double
@@ -140,6 +147,7 @@ module zofu
      generic, public :: str => &
           unit_test_str_logical, &
           unit_test_str_integer, &
+          unit_test_str_long_integer, &
           unit_test_str_integer_pair, &
           unit_test_str_real, &
           unit_test_str_double, &
@@ -151,6 +159,9 @@ module zofu
      procedure :: unit_test_failure_integer
      procedure :: unit_test_failure_integer_array_1
      procedure :: unit_test_failure_integer_array_2
+     procedure :: unit_test_failure_long_integer
+     procedure :: unit_test_failure_long_integer_array_1
+     procedure :: unit_test_failure_long_integer_array_2
      procedure :: unit_test_failure_real
      procedure :: unit_test_failure_real_array_1
      procedure :: unit_test_failure_real_array_2
@@ -170,6 +181,9 @@ module zofu
           unit_test_failure_integer, &
           unit_test_failure_integer_array_1, &
           unit_test_failure_integer_array_2, &
+          unit_test_failure_long_integer, &
+          unit_test_failure_long_integer_array_1, &
+          unit_test_failure_long_integer_array_2, &
           unit_test_failure_real, &
           unit_test_failure_real_array_1, &
           unit_test_failure_real_array_2, &
@@ -808,6 +822,59 @@ contains
   end subroutine unit_test_assert_equal_integer_array_2
 
 !------------------------------------------------------------------------
+! Long integer assertions:
+!------------------------------------------------------------------------
+
+  subroutine unit_test_assert_equal_long_integer(self, a, b, name)
+    !! Assert specified long integers are equal.
+
+    class(unit_test_type), intent(in out) :: self
+    integer(longint), intent(in) :: a, b !! Value to compare
+    character(len = *), intent(in), optional :: name !! Assertion name
+
+    call self%assert(a == b, name, self%failure(a, b))
+
+  end subroutine unit_test_assert_equal_long_integer
+
+!------------------------------------------------------------------------
+
+  subroutine unit_test_assert_equal_long_integer_array_1(self, a, b, name)
+    !! Assert specified rank-1 long integer arrays are equal.
+
+    class(unit_test_type), intent(in out) :: self
+    integer(longint), intent(in) :: a(:), b(:) !! Value to compare
+    character(len = *), intent(in), optional :: name !! Assertion name
+
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         call self%assert(all(a == b), name, self%failure(a, b))
+      else
+         call self%assert(na == nb, name, self%failure(a, b))
+      end if
+    end associate
+
+  end subroutine unit_test_assert_equal_long_integer_array_1
+
+!------------------------------------------------------------------------
+
+  subroutine unit_test_assert_equal_long_integer_array_2(self, a, b, name)
+    !! Assert specified rank-2 long integer arrays are equal.
+
+    class(unit_test_type), intent(in out) :: self
+    integer(longint), intent(in) :: a(:,:), b(:,:) !! Value to compare
+    character(len = *), intent(in), optional :: name !! Assertion name
+
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         call self%assert(all(a == b), name, self%failure(a, b))
+      else
+         call self%assert(all(na == nb), name, self%failure(a, b))
+      end if
+    end associate
+
+  end subroutine unit_test_assert_equal_long_integer_array_2
+
+!------------------------------------------------------------------------
 ! Real assertions:
 !------------------------------------------------------------------------
 
@@ -1093,6 +1160,22 @@ contains
 
 !------------------------------------------------------------------------
 
+  function unit_test_str_long_integer(self, a) result(str)
+    !! Return string representation of long integer variable.
+
+    class(unit_test_type), intent(in out) :: self
+    integer(longint), intent(in) :: a
+    character(:), allocatable :: str
+    ! Locals:
+    character(32) :: astr
+
+    write(astr, self%format_integer) a
+    str = trim(adjustl(astr))
+
+  end function unit_test_str_long_integer
+
+!------------------------------------------------------------------------
+
   function unit_test_str_integer_pair(self, a) result(str)
     !! Return string representation of integer array variable of size 2.
 
@@ -1307,6 +1390,75 @@ contains
     end associate
 
   end function unit_test_failure_integer_array_2
+
+!------------------------------------------------------------------------
+
+  type(assertion_failure_type) function unit_test_failure_long_integer(self, &
+       a, b) result(failure)
+    !! Return failure for long integer values.
+
+    class(unit_test_type), intent(in out) :: self
+    integer(longint), intent(in) :: a, b
+
+    call failure%init(self%str(a), self%str(b))
+    
+  end function unit_test_failure_long_integer
+
+!------------------------------------------------------------------------
+
+  type(assertion_failure_type) function unit_test_failure_long_integer_array_1(self, &
+       a, b) result(failure)
+    !! Return failure for rank-1 long integer array values.
+
+    class(unit_test_type), intent(in out) :: self
+    integer(longint), intent(in) :: a(:), b(:)
+    ! Locals:
+    logical :: m(size(a))
+    integer :: i, num
+
+    associate(na => size(a), nb => size(b))
+      if (na == nb) then
+         m = .not. (a == b)
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_1(m, i)
+            call failure%init(self%str(a(i)), self%str(b(i)), &
+                 scalar = .false., index = self%str(i), num = self%str(num))
+         end if
+      else
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
+      end if
+    end associate
+
+  end function unit_test_failure_long_integer_array_1
+
+!------------------------------------------------------------------------
+
+  type(assertion_failure_type) function unit_test_failure_long_integer_array_2(self, &
+       a, b) result(failure)
+    !! Return failure for rank-2 long integer array values.
+
+    class(unit_test_type), intent(in out) :: self
+    integer(longint), intent(in) :: a(:,:), b(:,:)
+    ! Locals:
+    logical :: m(size(a, 1), size(a, 2))
+    integer :: ij(2), num
+
+    associate(na => shape(a), nb => shape(b))
+      if (all(na == nb)) then
+         m = .not. (a == b)
+         num = count(m)
+         if (num > 0) then
+            call first_false_index_2(m, ij)
+            call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
+                 scalar = .false., index = self%str(ij), num = self%str(num))
+         end if
+      else
+         call failure%init(self%str(na), self%str(nb), FAILURE_REASON_SHAPE)
+      end if
+    end associate
+
+  end function unit_test_failure_long_integer_array_2
 
 !------------------------------------------------------------------------
 

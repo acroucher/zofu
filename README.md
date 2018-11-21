@@ -39,7 +39,7 @@ If a test case subroutine contains a comment with a description of the test case
 
 ### Making assertions
 
-Within a test case subroutine, assertions may be made using the `assert()` method of the `unit_test_type` object. This method takes either a single `logical` argument, or two arguments which the assertion tests for equality. These two arguments may be of type `logical`, `integer`, `real`, `double precision`, `complex`, or `character`. They may also be arrays of these types, of rank one or two.
+Within a test case subroutine, assertions may be made using the `assert()` method of the `unit_test_type` object. This method takes either a single `logical` argument, or two arguments which the assertion tests for equality. These two arguments may be of type `logical`, `integer` (4- or 8-byte), `real`, `double precision`, `complex`, or `character`. They may also be arrays of these types, of rank one or two.
 
 For example, the statement:
 

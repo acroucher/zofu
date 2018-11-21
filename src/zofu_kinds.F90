@@ -23,5 +23,6 @@ module zofu_kinds
   
   ! double precision:
   integer, parameter, public :: dp = kind(0.d0) !! double precision kind
+  integer, parameter, public :: longint = kind(1_8) !! long integer kind
   
 end module zofu_kinds
