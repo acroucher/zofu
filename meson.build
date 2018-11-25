@@ -92,17 +92,13 @@ if mpi.found()
 endif
 
 # Zofu scan tests:
-  datafiles = ['adder_tests.F90', 'adder_setup_test.F90']
-  foreach f: datafiles
-    configure_file(
-      input: join_paths(meson.current_source_dir(), 'test', 'data', f),
-      output: f, copy: true)
-  endforeach
-
 test_module = 'test_zofu_scan'
+test_env = environment()
+test_env.set('ZOFU_TEST_DATA_PATH',
+             join_paths(meson.current_source_dir(), 'test', 'data', ''))
 test_exe = executable(
   test_module,
   join_paths(test_src_dir, test_module + '.F90'),
   fortran_args: f_args,
   link_with: zofu)
-test(test_module, test_exe)
+test(test_module, test_exe, env: test_env)
