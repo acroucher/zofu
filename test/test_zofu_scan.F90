@@ -71,7 +71,7 @@ contains
     integer :: ierr
     character(len = 512) :: data_path
 
-    call getenv('ZOFU_TEST_DATA_PATH', data_path)
+    call get_environment_variable('ZOFU_TEST_DATA_PATH', data_path)
     ierr = test_module%init(trim(data_path) // filename)
     call test%assert(ierr /= 0, err, filename // " error")
     call test%assert(test_module%name, module_name, filename // " name")
