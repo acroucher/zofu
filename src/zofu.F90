@@ -205,14 +205,18 @@ module zofu
      end subroutine test_case_routine
   end interface
 
+  interface first_true_index
+     module procedure first_true_index_1, first_true_index_2
+  end interface first_true_index
+
 contains
 
 !------------------------------------------------------------------------
 ! Index finding utilities:
 !------------------------------------------------------------------------
 
-  subroutine first_false_index_1(m, first)
-    !! Returns index of first false index in rank-1 mask array m (or
+  subroutine first_true_index_1(m, first)
+    !! Returns index of first true element in rank-1 mask array m (or
     !! -1 if none found).
 
     logical, intent(in) :: m(:) !! Input mask array
@@ -229,12 +233,12 @@ contains
        first = -1
     end if
 
-  end subroutine first_false_index_1
+  end subroutine first_true_index_1
 
 !------------------------------------------------------------------------
 
-  subroutine first_false_index_2(m, first)
-    !! Returns indices of first false index in rank-2 mask array m (or
+  subroutine first_true_index_2(m, first)
+    !! Returns indices of first true element in rank-2 mask array m (or
     !! (-1, -1) if none found).
 
     logical, intent(in) :: m(:,:) !! Input mask array
@@ -256,7 +260,7 @@ contains
       end if
     end associate
 
-  end subroutine first_false_index_2
+  end subroutine first_true_index_2
 
 !------------------------------------------------------------------------
 ! Test counter methods:
@@ -1283,7 +1287,7 @@ contains
          m = .not. (a .eqv. b)
          num = count(m)
          if (num > 0) then
-            call first_false_index_1(m, i)
+            call first_true_index(m, i)
             call failure%init(self%str(a(i)), self%str(b(i)), &
                  scalar = .false., index = self%str(i), num = self%str(num))
          end if
@@ -1311,7 +1315,7 @@ contains
          m = .not. (a .eqv. b)
          num = count(m)
          if (num > 0) then
-            call first_false_index_2(m, ij)
+            call first_true_index(m, ij)
             call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
                  scalar = .false., index = self%str(ij), num = self%str(num))
          end if
@@ -1352,7 +1356,7 @@ contains
          m = .not. (a == b)
          num = count(m)
          if (num > 0) then
-            call first_false_index_1(m, i)
+            call first_true_index(m, i)
             call failure%init(self%str(a(i)), self%str(b(i)), &
                  scalar = .false., index = self%str(i), num = self%str(num))
          end if
@@ -1380,7 +1384,7 @@ contains
          m = .not. (a == b)
          num = count(m)
          if (num > 0) then
-            call first_false_index_2(m, ij)
+            call first_true_index(m, ij)
             call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
                  scalar = .false., index = self%str(ij), num = self%str(num))
          end if
@@ -1421,7 +1425,7 @@ contains
          m = .not. (a == b)
          num = count(m)
          if (num > 0) then
-            call first_false_index_1(m, i)
+            call first_true_index(m, i)
             call failure%init(self%str(a(i)), self%str(b(i)), &
                  scalar = .false., index = self%str(i), num = self%str(num))
          end if
@@ -1449,7 +1453,7 @@ contains
          m = .not. (a == b)
          num = count(m)
          if (num > 0) then
-            call first_false_index_2(m, ij)
+            call first_true_index(m, ij)
             call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
                  scalar = .false., index = self%str(ij), num = self%str(num))
          end if
@@ -1491,7 +1495,7 @@ contains
          m = .not. (self%equal_tol(a, b, tol))
          num = count(m)
          if (num > 0) then
-            call first_false_index_1(m, i)
+            call first_true_index(m, i)
             call failure%init(self%str(a(i)), self%str(b(i)), &
                  scalar = .false., index = self%str(i), num = self%str(num))
          end if
@@ -1520,7 +1524,7 @@ contains
          m = .not. (self%equal_tol(a, b, tol))
          num = count(m)
          if (num > 0) then
-            call first_false_index_2(m, ij)
+            call first_true_index(m, ij)
             call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
                  scalar = .false., index = self%str(ij), num = self%str(num))
          end if
@@ -1562,7 +1566,7 @@ contains
          m = .not. (self%equal_tol(a, b, tol))
          num = count(m)
          if (num > 0) then
-            call first_false_index_1(m, i)
+            call first_true_index(m, i)
             call failure%init(self%str(a(i)), self%str(b(i)), &
                  scalar = .false., index = self%str(i), num = self%str(num))
          end if
@@ -1591,7 +1595,7 @@ contains
          m = .not. (self%equal_tol(a, b, tol))
          num = count(m)
          if (num > 0) then
-            call first_false_index_2(m, ij)
+            call first_true_index(m, ij)
             call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
                  scalar = .false., index = self%str(ij), num = self%str(num))
          end if
@@ -1633,7 +1637,7 @@ contains
          m = .not. (self%equal_tol(a, b, tol))
          num = count(m)
          if (num > 0) then
-            call first_false_index_1(m, i)
+            call first_true_index(m, i)
             call failure%init(self%str(a(i)), self%str(b(i)), &
                  scalar = .false., index = self%str(i), num = self%str(num))
          end if
@@ -1662,7 +1666,7 @@ contains
          m = .not. (self%equal_tol(a, b, tol))
          num = count(m)
          if (num > 0) then
-            call first_false_index_2(m, ij)
+            call first_true_index(m, ij)
             call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
                  scalar = .false., index = self%str(ij), num = self%str(num))
          end if
@@ -1703,7 +1707,7 @@ contains
          m = .not. (str_equal(a, b))
          num = count(m)
          if (num > 0) then
-            call first_false_index_1(m, i)
+            call first_true_index(m, i)
             call failure%init(self%str(a(i)), self%str(b(i)), &
                  scalar = .false., index = self%str(i), num = self%str(num))
          end if
@@ -1731,7 +1735,7 @@ contains
          m = .not. (str_equal(a, b))
          num = count(m)
          if (num > 0) then
-            call first_false_index_2(m, ij)
+            call first_true_index(m, ij)
             call failure%init(self%str(a(ij(1), ij(2))), self%str(b(ij(1), ij(2))), &
                  scalar = .false., index = self%str(ij), num = self%str(num))
          end if
