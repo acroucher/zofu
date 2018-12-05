@@ -225,6 +225,7 @@ contains
     integer :: i
     integer, allocatable :: indices(:)
 
+    allocate(indices(size(m)))
     indices = [(i, i = 1, size(m))]
     indices = pack(indices, m)
     if (size(indices) > 0) then
