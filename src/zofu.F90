@@ -399,7 +399,7 @@ contains
 !------------------------------------------------------------------------
 
   function assertion_failure_yaml(self) result(yaml)
-    !! Initialize assertion failure.
+    !! Returns YAML string for assertion failure.
 
     class(assertion_failure_type), intent(in) :: self
     character(:), allocatable :: yaml
