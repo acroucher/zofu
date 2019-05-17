@@ -1,1 +1,1 @@
-option('mpi_wrapper_compiler', type : 'boolean', value : false)
+option('mpi_wrapper_compiler', type : 'boolean', value : false, yield: true)
