@@ -8,7 +8,14 @@ else
   f_args = []
 endif
 
-mpi = dependency('mpi', language: 'fortran', required: false)
+if get_option('mpi_wrapper_compiler')
+  deps = []
+  mpi_found = true
+else
+  mpi = dependency('mpi', language: 'fortran', required: false)
+  deps = mpi
+  mpi_found = mpi.found()
+endif
 
 prefix = get_option('prefix')
 libdir = get_option('libdir')
@@ -16,7 +23,7 @@ libdir = get_option('libdir')
 src_dir = join_paths(meson.current_source_dir(), 'src')
 zofu_modules = ['zofu_kinds.F90', 'zofu.F90',
                 'zofu_str_utils.F90', 'zofu_scan.F90']
-if mpi.found()
+if mpi_found
   zofu_modules += ['zofu_mpi.F90']
 endif
 zofu_sources = []
@@ -27,7 +34,7 @@ endforeach
 zofu = shared_library('zofu',
                       zofu_sources,
                       fortran_args: f_args,
-                      dependencies: mpi,
+                      dependencies: deps,
                       install: true)
 
 zofu_dep = declare_dependency(link_with : zofu)
@@ -77,7 +84,7 @@ foreach test_module: test_modules
   test(test_module, test_exe)
 endforeach
 
-if mpi.found()
+if mpi_found
   mpi_test_modules = ['test_mpi']
   foreach test_module: mpi_test_modules
     test_exe = executable(
@@ -86,7 +93,7 @@ if mpi.found()
        join_paths(test_src_dir, 'check_mpi.F90')],
       fortran_args: f_args,
       link_with: zofu,
-      dependencies: mpi)
+      dependencies: deps)
     test(test_module, test_exe, is_parallel: false)
   endforeach
 endif
