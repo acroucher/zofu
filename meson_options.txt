@@ -1,0 +1,1 @@
+option('mpi_wrapper_compiler', type : 'boolean', value : false)
