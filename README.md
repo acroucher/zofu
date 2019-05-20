@@ -193,7 +193,15 @@ Zofu can then be built using:
 ninja -C build
 ```
 
-Zofu will be built with MPI support (including the `zofu_mpi` module) if Meson detects that MPI is installed on your machine. There is no need to use a wrapper compiler (e.g. mpif90) to build it.
+Zofu will be built with MPI support (including the `zofu_mpi` module) if Meson detects that MPI is installed on your machine. There is usually no need to use a wrapper compiler (e.g. mpif90) to build it.
+
+However, if you are building on a system with an unusual compiler and/or MPI library setup (e.g. some types of compute cluster), Meson may not be able to detect MPI. In this case you can use a wrapper compiler. You can specify that you want to use a wrapper compiler by setting the `-Dmpi_wrapper_compiler` build option to `true`, and specify the wrapper compiler using the `FC` environment variable. For example:
+
+```
+FC=ftn meson build -Dmpi_wrapper_compiler=true
+```
+
+will configure the Zofu build to use an MPI wrapper compiler called `ftn`.
 
 # Installing Zofu
 
