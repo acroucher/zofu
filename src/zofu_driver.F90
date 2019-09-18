@@ -58,7 +58,7 @@ program zofu_driver
         call test_module%write_driver(driver_filename)
         call test_module%destroy()
      else
-        stop "Error opening module file " // module_filename // "."
+        stop "Error opening test module file."
      end if
 
   end if
