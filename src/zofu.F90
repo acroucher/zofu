@@ -445,7 +445,7 @@ contains
     ! Locals:
     real, parameter :: default_relative_tol = 1.e-6
     real, parameter :: default_minimum_scale = 1.e-6
-    character(3), parameter :: default_format_logical = "(l)"
+    character(4), parameter :: default_format_logical = "(l1)"
     character(4), parameter :: default_format_integer = "(i0)"
     character(7), parameter :: default_format_real = "(f16.5)"
     character(7), parameter :: default_format_real_scientific = "(e16.5)"
