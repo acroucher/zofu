@@ -1,3 +1,5 @@
+![Unit tests](https://github.com/acroucher/zofu/workflows/Unit%20tests/badge.svg)
+
 **Zofu** (Zofu is Object-oriented Fortran Unit-testing) is a framework for carrying out unit testing of Fortran code modules. As the name suggests, it makes use of the object-oriented features of Fortran 2003.
 
 # Unit testing with Zofu
