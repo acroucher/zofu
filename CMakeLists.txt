@@ -51,7 +51,7 @@ project(zofu
 # The following is defined in Findcodecov.cmake:
 # option(ENABLE_COVERAGE "Enable coverage build." OFF)
 
-# Enable MPI support
+# Enable MPI support; disabled by default
 option(ENABLE_MPI "Enable MPI" OFF)
 
 ###############################################################################
@@ -80,6 +80,9 @@ enable_testing()
 if(ENABLE_MPI)
     find_package(MPI COMPONENTS Fortran OPTIONAL_COMPONENTS)
 endif()
+
+# Add convenience functions for creating and running acceptance tests
+include(ZofuHelper)
 
 ###############################################################################
 ## Build ######################################################################
@@ -184,204 +187,33 @@ set(TEST_SRC_BASE "${CMAKE_CURRENT_SOURCE_DIR}/test")
 
 # ***** Unit Tests *****
 
-# test_complex_asserts
-set(TEST_NAME test_complex_asserts)
-set(TEST_FORTRAN_MODULE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}_include")
-file(MAKE_DIRECTORY "${TEST_FORTRAN_MODULE_DIR}")
-set(TEST_SOURCES
-    ${TEST_SRC_BASE}/check.F90
-    ${TEST_SRC_BASE}/test_complex_asserts.F90
-)
-add_executable(${TEST_NAME} ${TEST_SOURCES})
-# add_coverage(${TEST_NAME})
-set_target_properties(
-    ${TEST_NAME}
-    PROPERTIES
-    OUTPUT_NAME ${TEST_NAME}
-    DEPENDS ${ZOFU_LIB_NAME}
-    Fortran_MODULE_DIRECTORY ${TEST_FORTRAN_MODULE_DIR}
-    INCLUDE_DIRECTORIES ${ZOFU_FORTRAN_MODULE_DIR}
-    LINK_LIBRARIES ${ZOFU_LIB_NAME}
+# Simple unit tests
+
+set(SIMPLE_TEST
+    test_complex_asserts
+    test_double_asserts
+    test_integer_asserts
+    test_logical_asserts
+    test_real_asserts
+    test_string_asserts
+    test_str_utils
 )
 
-add_test(NAME ${TEST_NAME}
-    COMMAND $<TARGET_FILE:${TEST_NAME}>
-    CONFIGURATIONS Debug Release ""
-)
+foreach(TEST_NAME IN LISTS SIMPLE_TEST)
+    set(TEST_SOURCES ${TEST_SRC_BASE}/check.F90 ${TEST_SRC_BASE}/${TEST_NAME}.F90)
+    add_zofu_acceptance_test(
+       TARGET ${TEST_NAME}
+       SOURCES ${TEST_SOURCES}
+    )
+endforeach()
 
-# test_double_asserts
-set(TEST_NAME test_double_asserts)
-set(TEST_FORTRAN_MODULE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}_include")
-file(MAKE_DIRECTORY "${TEST_FORTRAN_MODULE_DIR}")
-set(TEST_SOURCES
-    ${TEST_SRC_BASE}/check.F90
-    ${TEST_SRC_BASE}/test_double_asserts.F90
-)
-add_executable(${TEST_NAME} ${TEST_SOURCES})
-# add_coverage(${TEST_NAME})
-set_target_properties(
-    ${TEST_NAME}
-    PROPERTIES
-    OUTPUT_NAME ${TEST_NAME}
-    DEPENDS ${ZOFU_LIB_NAME}
-    Fortran_MODULE_DIRECTORY ${TEST_FORTRAN_MODULE_DIR}
-    INCLUDE_DIRECTORIES ${ZOFU_FORTRAN_MODULE_DIR}
-    LINK_LIBRARIES ${ZOFU_LIB_NAME}
-)
-
-add_test(NAME ${TEST_NAME}
-    COMMAND $<TARGET_FILE:${TEST_NAME}>
-    CONFIGURATIONS Debug Release ""
-)
-
-# test_integer_asserts
-set(TEST_NAME test_integer_asserts)
-set(TEST_FORTRAN_MODULE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}_include")
-file(MAKE_DIRECTORY "${TEST_FORTRAN_MODULE_DIR}")
-set(TEST_SOURCES
-    ${TEST_SRC_BASE}/check.F90
-    ${TEST_SRC_BASE}/test_integer_asserts.F90
-)
-add_executable(${TEST_NAME} ${TEST_SOURCES})
-# add_coverage(${TEST_NAME})
-set_target_properties(
-    ${TEST_NAME}
-    PROPERTIES
-    OUTPUT_NAME ${TEST_NAME}
-    DEPENDS ${ZOFU_LIB_NAME}
-    Fortran_MODULE_DIRECTORY ${TEST_FORTRAN_MODULE_DIR}
-    INCLUDE_DIRECTORIES ${ZOFU_FORTRAN_MODULE_DIR}
-    LINK_LIBRARIES ${ZOFU_LIB_NAME}
-)
-
-add_test(NAME ${TEST_NAME}
-    COMMAND $<TARGET_FILE:${TEST_NAME}>
-    CONFIGURATIONS Debug Release ""
-)
-
-# test_logical_asserts
-set(TEST_NAME test_logical_asserts)
-set(TEST_FORTRAN_MODULE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}_include")
-file(MAKE_DIRECTORY "${TEST_FORTRAN_MODULE_DIR}")
-set(TEST_SOURCES
-    ${TEST_SRC_BASE}/check.F90
-    ${TEST_SRC_BASE}/test_logical_asserts.F90
-)
-add_executable(${TEST_NAME} ${TEST_SOURCES})
-# add_coverage(${TEST_NAME})
-set_target_properties(
-    ${TEST_NAME}
-    PROPERTIES
-    OUTPUT_NAME ${TEST_NAME}
-    DEPENDS ${ZOFU_LIB_NAME}
-    Fortran_MODULE_DIRECTORY ${TEST_FORTRAN_MODULE_DIR}
-    INCLUDE_DIRECTORIES ${ZOFU_FORTRAN_MODULE_DIR}
-    LINK_LIBRARIES ${ZOFU_LIB_NAME}
-)
-
-add_test(NAME ${TEST_NAME}
-    COMMAND $<TARGET_FILE:${TEST_NAME}>
-    CONFIGURATIONS Debug Release ""
-)
-
-# test_real_asserts
-set(TEST_NAME test_real_asserts)
-set(TEST_FORTRAN_MODULE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}_include")
-file(MAKE_DIRECTORY "${TEST_FORTRAN_MODULE_DIR}")
-set(TEST_SOURCES
-    ${TEST_SRC_BASE}/check.F90
-    ${TEST_SRC_BASE}/test_real_asserts.F90
-)
-add_executable(${TEST_NAME} ${TEST_SOURCES})
-# add_coverage(${TEST_NAME})
-set_target_properties(
-    ${TEST_NAME}
-    PROPERTIES
-    OUTPUT_NAME ${TEST_NAME}
-    DEPENDS ${ZOFU_LIB_NAME}
-    Fortran_MODULE_DIRECTORY ${TEST_FORTRAN_MODULE_DIR}
-    INCLUDE_DIRECTORIES ${ZOFU_FORTRAN_MODULE_DIR}
-    LINK_LIBRARIES ${ZOFU_LIB_NAME}
-)
-
-add_test(NAME ${TEST_NAME}
-    COMMAND $<TARGET_FILE:${TEST_NAME}>
-    CONFIGURATIONS Debug Release ""
-)
-
-# test_string_asserts
-set(TEST_NAME test_string_asserts)
-set(TEST_FORTRAN_MODULE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}_include")
-file(MAKE_DIRECTORY "${TEST_FORTRAN_MODULE_DIR}")
-set(TEST_SOURCES
-    ${TEST_SRC_BASE}/check.F90
-    ${TEST_SRC_BASE}/test_string_asserts.F90
-)
-add_executable(${TEST_NAME} ${TEST_SOURCES})
-# add_coverage(${TEST_NAME})
-set_target_properties(
-    ${TEST_NAME}
-    PROPERTIES
-    OUTPUT_NAME ${TEST_NAME}
-    DEPENDS ${ZOFU_LIB_NAME}
-    Fortran_MODULE_DIRECTORY ${TEST_FORTRAN_MODULE_DIR}
-    INCLUDE_DIRECTORIES ${ZOFU_FORTRAN_MODULE_DIR}
-    LINK_LIBRARIES ${ZOFU_LIB_NAME}
-)
-
-add_test(NAME ${TEST_NAME}
-    COMMAND $<TARGET_FILE:${TEST_NAME}>
-    CONFIGURATIONS Debug Release ""
-)
-
-# test_str_utils
-set(TEST_NAME test_str_utils)
-set(TEST_FORTRAN_MODULE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}_include")
-file(MAKE_DIRECTORY "${TEST_FORTRAN_MODULE_DIR}")
-set(TEST_SOURCES
-    ${TEST_SRC_BASE}/check.F90
-    ${TEST_SRC_BASE}/test_str_utils.F90
-)
-add_executable(${TEST_NAME} ${TEST_SOURCES})
-# add_coverage(${TEST_NAME})
-set_target_properties(
-    ${TEST_NAME}
-    PROPERTIES
-    OUTPUT_NAME ${TEST_NAME}
-    DEPENDS ${ZOFU_LIB_NAME}
-    Fortran_MODULE_DIRECTORY ${TEST_FORTRAN_MODULE_DIR}
-    INCLUDE_DIRECTORIES ${ZOFU_FORTRAN_MODULE_DIR}
-    LINK_LIBRARIES ${ZOFU_LIB_NAME}
-)
-
-add_test(NAME ${TEST_NAME}
-    COMMAND $<TARGET_FILE:${TEST_NAME}>
-    CONFIGURATIONS Debug Release ""
-)
-
-# test_zofu_scan
-
+# test_zofu_scan - needs environment variable set
 set(TEST_NAME test_zofu_scan)
-set(TEST_FORTRAN_MODULE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}_include")
-file(MAKE_DIRECTORY "${TEST_FORTRAN_MODULE_DIR}")
-set(TEST_SOURCES
-    ${TEST_SRC_BASE}/test_zofu_scan.F90
-)
-add_executable(${TEST_NAME} ${TEST_SOURCES})
-# add_coverage(${TEST_NAME})
-set_target_properties(
-    ${TEST_NAME}
-    PROPERTIES
-    OUTPUT_NAME ${TEST_NAME}
-    DEPENDS ${ZOFU_LIB_NAME}
-    Fortran_MODULE_DIRECTORY ${TEST_FORTRAN_MODULE_DIR}
-    INCLUDE_DIRECTORIES ${ZOFU_FORTRAN_MODULE_DIR}
-    LINK_LIBRARIES ${ZOFU_LIB_NAME}
-)
-
-add_test(NAME ${TEST_NAME}
-    COMMAND $<TARGET_FILE:${TEST_NAME}>
-    CONFIGURATIONS Debug Release ""
+set(TEST_SOURCES ${TEST_SRC_BASE}/test_zofu_scan.F90)
+# set(TEST_ENV "ZOFU_TEST_DATA_PATH=${TEST_SRC_BASE}/data/")
+add_zofu_acceptance_test(
+    TARGET ${TEST_NAME}
+    SOURCES ${TEST_SOURCES}
 )
 # Note: Set environment variable ZOFU_TEST_DATA_PATH
 # to ${CMAKE_CURRENT_SOURCE_DIR}/test/data/ <-- TRAILING SLASH
@@ -390,32 +222,20 @@ set_tests_properties(${TEST_NAME}
     ENVIRONMENT ZOFU_TEST_DATA_PATH=${TEST_SRC_BASE}/data/
 )
 
+# test_mpi - needs MPI compilation options
 if(MPI_Fortran_FOUND)
     # test_mpi
     set(TEST_NAME test_mpi)
-    set(TEST_FORTRAN_MODULE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}_include")
-    file(MAKE_DIRECTORY "${TEST_FORTRAN_MODULE_DIR}")
     set(TEST_SOURCES
         ${TEST_SRC_BASE}/check_mpi.F90
         ${TEST_SRC_BASE}/test_mpi.F90
     )
-    add_executable(${TEST_NAME} ${TEST_SOURCES})
+    add_zofu_acceptance_test(
+        TARGET ${TEST_NAME}
+        SOURCES ${TEST_SOURCES}
+    )
     # add_coverage(${TEST_NAME})
-    set_target_properties(
-        ${TEST_NAME}
-        PROPERTIES
-        OUTPUT_NAME ${TEST_NAME}
-        DEPENDS ${ZOFU_LIB_NAME}
-        Fortran_MODULE_DIRECTORY ${TEST_FORTRAN_MODULE_DIR}
-        INCLUDE_DIRECTORIES ${ZOFU_FORTRAN_MODULE_DIR}
-        LINK_LIBRARIES ${ZOFU_LIB_NAME}
-    )
     target_compile_options(${TEST_NAME} PUBLIC ${MPI_Fortran_COMPILE_OPTIONS})
-
-    add_test(NAME ${TEST_NAME}
-        COMMAND $<TARGET_FILE:${TEST_NAME}>
-        CONFIGURATIONS Debug Release ""
-    )
 endif()
 
 ###############################################################################
