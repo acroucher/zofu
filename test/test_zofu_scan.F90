@@ -12,7 +12,7 @@ program test_zofu_scan
 
   call test%run(test_subroutine_roles)
   call test%run(test_modules)
-  
+
   call test%summary()
   if (test%failed) stop 1
 
@@ -72,6 +72,7 @@ contains
     character(len = 512) :: data_path
 
     call get_environment_variable('ZOFU_TEST_DATA_PATH', data_path)
+    test_module%name = ""
     ierr = test_module%init(trim(data_path) // filename)
     call test%assert(ierr /= 0, err, filename // " error")
     call test%assert(test_module%name, module_name, filename // " name")
@@ -79,7 +80,7 @@ contains
          filename // " subroutine count")
     call test%assert(test_module%setup, setup, filename // " setup")
     call test%assert(test_module%teardown, teardown, filename // " teardown")
-    
+
   end subroutine module_test
 
 !------------------------------------------------------------------------
@@ -95,9 +96,9 @@ contains
          .true., .true., .false.)
     call module_test(test, "missing.F90", "", 0, &
          .false., .false., .true.)
-    
+
   end subroutine test_modules
-    
+
 !------------------------------------------------------------------------
 
 end program test_zofu_scan
