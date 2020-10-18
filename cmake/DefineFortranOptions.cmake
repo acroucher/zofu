@@ -25,6 +25,6 @@ set_fcopt(FC_ALLOWS_STD_F2008 FCOPT_STD_F2008 "--std=f2008")
 set_fcopt(FC_ALLOWS_STD_F2018 FCOPT_STD_F2018 "--std=f2018")
 
 # Code coverage options - experimental
-set_fcopt(FC_ALLOWS_COVERAGE FCOPT_COVERAGE "--coverage")
-set_fcopt(FC_ALLOWS_PROFILE_ARCS FCOPT_PROFILE_ARCS "-fprofile-arcs")
-set_fcopt(FC_ALLOWS_TEST_COVERAGE FCOPT_TEST_COVERAGE "-ftest-coverage")
+# set_fcopt(FC_ALLOWS_COVERAGE FCOPT_COVERAGE "--coverage")
+# set_fcopt(FC_ALLOWS_PROFILE_ARCS FCOPT_PROFILE_ARCS "-fprofile-arcs")
+# set_fcopt(FC_ALLOWS_TEST_COVERAGE FCOPT_TEST_COVERAGE "-ftest-coverage")
