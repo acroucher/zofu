@@ -37,20 +37,6 @@ project(zofu
 ## Options ####################################################################
 ###############################################################################
 
-# Set fortran compiler with environment variable FC or CMake option
-# -D CMAKE_Fortran_COMPILER
-
-# Set C compiler with environment variable CC or CMake option
-# -D CMAKE_C_COMPILER
-
-# Set C++ compiler with environment variable CXX or CMake option
-# -D CMAKE_CXX_COMPILER
-
-# Test coverage analysis with gcov/lcov is disabled by default; enable with
-# CMake option -D ENABLE_COVERAGE:BOOL=ON
-# The following is defined in Findcodecov.cmake:
-# option(ENABLE_COVERAGE "Enable coverage build." OFF)
-
 # Enable MPI support; disabled by default
 option(ENABLE_MPI "Enable MPI" OFF)
 
@@ -73,21 +59,20 @@ include(ExternalProject)
 include(CTest)
 enable_testing()
 
-# # Enable code coverage
-# find_package(codecov)
-
 # Query MPI support
 if(ENABLE_MPI)
     find_package(MPI COMPONENTS Fortran OPTIONAL_COMPONENTS)
 endif()
 
-# Add convenience functions for creating and running acceptance tests
-include(ZofuHelper)
+# Add convenience function for creating and running acceptance tests
+include(ZofuAcceptanceHelper)
 
 ###############################################################################
 ## Build ######################################################################
 ###############################################################################
 
+# Interrogates Fortran compiler to see which options are supported
+# (vs configuring by looking at compiler name or ID)
 include(DefineFortranOptions)
 
 list(APPEND FCOPTS
@@ -169,7 +154,6 @@ set_target_properties(
     INCLUDE_DIRECTORIES ${ZOFU_FORTRAN_MODULE_DIR}
     LINK_LIBRARIES ${ZOFU_LIB_NAME}
 )
-# add_coverage(ZOFUDRIVER)
 
 if(MPI_Fortran_FOUND)
     target_compile_options(ZOFUDRIVER PUBLIC ${FCOPTS} ${MPI_Fortran_COMPILE_OPTIONS})
@@ -182,10 +166,9 @@ install(TARGETS ZOFUDRIVER ${ZOFU_LIB_NAME})
 ###############################################################################
 ## Testing ####################################################################
 ###############################################################################
-# Unit test executables
-set(TEST_SRC_BASE "${CMAKE_CURRENT_SOURCE_DIR}/test")
 
-# ***** Unit Tests *****
+# Directory containing unit test source files
+set(TEST_SRC_BASE "${CMAKE_CURRENT_SOURCE_DIR}/test")
 
 # Simple unit tests
 
@@ -208,6 +191,7 @@ foreach(TEST_NAME IN LISTS SIMPLE_TEST)
 endforeach()
 
 # test_zofu_scan - needs environment variable set
+
 set(TEST_NAME test_zofu_scan)
 set(TEST_SOURCES ${TEST_SRC_BASE}/test_zofu_scan.F90)
 # set(TEST_ENV "ZOFU_TEST_DATA_PATH=${TEST_SRC_BASE}/data/")
@@ -223,6 +207,7 @@ set_tests_properties(${TEST_NAME}
 )
 
 # test_mpi - needs MPI compilation options
+
 if(MPI_Fortran_FOUND)
     # test_mpi
     set(TEST_NAME test_mpi)
@@ -234,7 +219,6 @@ if(MPI_Fortran_FOUND)
         TARGET ${TEST_NAME}
         SOURCES ${TEST_SOURCES}
     )
-    # add_coverage(${TEST_NAME})
     target_compile_options(${TEST_NAME} PUBLIC ${MPI_Fortran_COMPILE_OPTIONS})
 endif()
 

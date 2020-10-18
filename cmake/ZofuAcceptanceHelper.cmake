@@ -61,7 +61,6 @@ function(add_zofu_acceptance_test)
     set(TEST_FORTRAN_MODULE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${ARG_TARGET}_include")
     file(MAKE_DIRECTORY "${TEST_FORTRAN_MODULE_DIR}")
     add_executable(${ARG_TARGET} ${ARG_SOURCES})
-    # add_coverage(${ARG_TARGET})
     set_target_properties(
         ${ARG_TARGET}
         PROPERTIES
