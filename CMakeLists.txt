@@ -27,10 +27,8 @@ string(TIMESTAMP BUILD_TIMESTAMP UTC)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Set project name and language
-# Note: C and CXX are enabled because FindMPI fails if they aren't.
-# FindMPI fails regardless...
 project(zofu
-        LANGUAGES Fortran C CXX
+        LANGUAGES Fortran
         VERSION "${CPACK_PACKAGE_VERSION}")
 
 ###############################################################################
@@ -50,7 +48,8 @@ set(FORD_PATH "" CACHE PATH "Directory path of FORD documentation tool")
 # Defined cmake_parse_arguments(). Needed only for CMake 3.4 and earlier
 include(CMakeParseArguments)
 
-# Set default installation paths; should be invoked after setting project language(s)
+# Set default installation paths; should be invoked after setting project
+# language(s)
 include(GNUInstallDirs)
 
 # Allow external projects to be imported
@@ -136,6 +135,11 @@ set_target_properties(
 
 if(MPI_Fortran_FOUND)
     target_compile_options(${ZOFU_LIB_NAME} PUBLIC ${FCOPTS} ${MPI_Fortran_COMPILE_OPTIONS})
+    set_target_properties(
+        ${ZOFU_LIB_NAME}
+        PROPERTIES
+        INCLUDE_DIRECTORIES ${MPI_Fortran_INCLUDE_DIRS}
+    )
 else()
     target_compile_options(${ZOFU_LIB_NAME} PUBLIC ${FCOPTS})
 endif()
@@ -224,6 +228,11 @@ if(MPI_Fortran_FOUND)
     add_zofu_acceptance_test(
         TARGET ${TEST_NAME}
         SOURCES ${TEST_SOURCES}
+    )
+    set_target_properties(
+        ${TEST_NAME}
+        PROPERTIES
+        INCLUDE_DIRECTORIES ${MPI_Fortran_INCLUDE_DIRS}
     )
     target_compile_options(${TEST_NAME} PUBLIC ${MPI_Fortran_COMPILE_OPTIONS})
 endif()
