@@ -40,6 +40,9 @@ project(zofu
 # Enable MPI support; disabled by default
 option(ENABLE_MPI "Enable MPI" OFF)
 
+# Set additional search path for FORD
+set(FORD_PATH "" CACHE PATH "Directory path of FORD documentation tool")
+
 ###############################################################################
 ## Dependencies and CMake Modules  ############################################
 ###############################################################################
@@ -66,6 +69,9 @@ endif()
 
 # Add convenience function for creating and running acceptance tests
 include(ZofuAcceptanceHelper)
+
+# Fortran Documenter
+find_package(FORD)
 
 ###############################################################################
 ## Build ######################################################################
@@ -220,6 +226,30 @@ if(MPI_Fortran_FOUND)
         SOURCES ${TEST_SOURCES}
     )
     target_compile_options(${TEST_NAME} PUBLIC ${MPI_Fortran_COMPILE_OPTIONS})
+endif()
+
+###############################################################################
+## Documentation ##############################################################
+###############################################################################
+
+if(FORD_FOUND)
+    set(FORD_BUILD_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc")
+    set(FORD_CONFIG_TEMPLATE "${CMAKE_CURRENT_SOURCE_DIR}/doc.md.in")
+    set(FORD_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/doc.md")
+    file(MAKE_DIRECTORY "${FORD_BUILD_DIRECTORY}")
+    configure_file("${FORD_CONFIG_TEMPLATE}" "${FORD_CONFIG}" @ONLY)
+
+    add_custom_target(doc
+        ALL
+        COMMAND ${CMAKE_COMMAND} -E echo "Generating documentation with FORD"
+        COMMAND ${FORD_BINARY} ${FORD_CONFIG}
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        VERBATIM
+        USES_TERMINAL
+    )
+    # Installs contents of ./build/doc under installer path ./doc/html (note
+    # trailing slash in source directory)
+    install(DIRECTORY "${FORD_BUILD_DIRECTORY}/" DESTINATION doc/html)
 endif()
 
 ###############################################################################

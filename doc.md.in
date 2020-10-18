@@ -1,0 +1,14 @@
+project: Zofu
+version: @CPACK_PACKAGE_VERSION@
+author: Dr Adrian Croucher
+author_description: Senior Research Fellow, Department of Engineering Science, University of Auckland
+email: a.croucher@auckland.ac.nz
+website: https://unidirectory.auckland.ac.nz/profile/a-croucher
+github: https://github.com/acroucher
+project_github: https://github.com/acroucher/zofu
+project_dir: @CMAKE_CURRENT_SOURCE_DIR@
+src_dir: @ZOFU_SOURCE_DIR@
+output_dir: @FORD_BUILD_DIRECTORY@
+page_dir: @FORD_BUILD_DIRECTORY@
+extensions: F90
+Zofu is Object-oriented Fortran Unit-testing.
