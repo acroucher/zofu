@@ -182,8 +182,6 @@ install(TARGETS ZOFUDRIVER ${ZOFU_LIB_NAME})
 # Unit test executables
 set(TEST_SRC_BASE "${CMAKE_CURRENT_SOURCE_DIR}/test")
 
-set(TEST_BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}/test")
-
 # ***** Unit Tests *****
 
 # test_complex_asserts
@@ -361,12 +359,7 @@ add_test(NAME ${TEST_NAME}
     CONFIGURATIONS Debug Release ""
 )
 
-# test_zofu_scan - fails; needs directory setup
-
-# Create zofu_scan test directory
-# set(ZOFU_SCAN_TEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/test_zofu_scan.d")
-# file(MAKE_DIRECTORY "${ZOFU_SCAN_TEST_DIR}")
-# file(COPY "${TEST_SRC_BASE}/data" DESTINATION "${ZOFU_SCAN_TEST_DIR}")
+# test_zofu_scan
 
 set(TEST_NAME test_zofu_scan)
 set(TEST_FORTRAN_MODULE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}_include")
@@ -388,9 +381,10 @@ set_target_properties(
 
 add_test(NAME ${TEST_NAME}
     COMMAND $<TARGET_FILE:${TEST_NAME}>
-    # WORKING_DIRECTORY "${ZOFU_SCAN_TEST_DIR}"
     CONFIGURATIONS Debug Release ""
 )
+# Note: Set environment variable ZOFU_TEST_DATA_PATH
+# to ${CMAKE_CURRENT_SOURCE_DIR}/test/data/ <-- TRAILING SLASH
 set_tests_properties(${TEST_NAME}
     PROPERTIES
     ENVIRONMENT ZOFU_TEST_DATA_PATH=${TEST_SRC_BASE}/data/
@@ -438,10 +432,8 @@ if(WIN32)
     # Set up NSIS
     find_package(NSIS)
     if(NSIS_FOUND)
-        # set(CPACK_NSIS_DISPLAY_NAME "${GRAPHVIZ_VERSION_FULL}")
-        # set(CPACK_NSIS_PACKAGE_NAME "${GRAPHVIZ_VERSION_FULL}")
-        set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/img/ZOFU.ico")
-        set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/img/ZOFU.ico")
+        # set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}/img/ZOFU.ico")
+        # set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}/img/ZOFU.ico")
         set(CPACK_NSIS_INSTALLED_ICON_NAME "Uninstall.exe")
         set(CPACK_NSIS_HELP_LINK "${CPACK_PACKAGE_HOMEPAGE_URL}")
         set(CPACK_NSIS_URL_INFO_ABOUT "${CPACK_PACKAGE_HOMEPAGE_URL}")
@@ -477,7 +469,7 @@ if(WIN32)
         set(WIX_LICENSE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.rtf")
         set(CPACK_WIX_LICENSE_RTF "${WIX_LICENSE_FILE}")
         install(FILES "${WIX_LICENSE_FILE}" DESTINATION doc)
-        set(CPACK_WIX_PRODUCT_ICON "${CMAKE_CURRENT_SOURCE_DIR}/img/ZOFU.ico")
+        # set(CPACK_WIX_PRODUCT_ICON "${CMAKE_CURRENT_SOURCE_DIR}/img/ZOFU.ico")
         # Note: This should not change for the life of the product
         # Generated from guidgen.exe
         # set(CPACK_WIX_UPGRADE_GUID "")
@@ -524,19 +516,12 @@ suggests, it makes use of the object-oriented features of Fortran 2003.")
             # set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "any")
             # Auto-detect dependencies
             set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-            # Hack to find internal libraries - see https://gitlab.kitware.com/cmake/cmake/-/issues/17447
-            # list(APPEND CMAKE_INSTALL_RPATH
-            #     "$ORIGIN/../lib/graphviz"
-            # )
-            # A better solution is to set LD_LIBRARY_PATH when running CPack or `make package`
-            # Exanple: LD_LIBRARY_PATH=./_CPack_Packages/Linux/DEB/Graphviz-2.45.0-Linux/usr/lib/graphviz:${LD_LIBRARY_PATH} make package
-            # Exanple: LD_LIBRARY_PATH=./_CPack_Packages/Linux/DEB/Graphviz-2.45.0-Linux/usr/lib/graphviz:${LD_LIBRARY_PATH} cpack -G DEB
             # Build multiple packages
             set(CPACK_DEB_COMPONENT_INSTALL ON)
             set(CPACK_DEBIAN_ENABLE_COMPONENT_DEPENDS ON)
             # set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
             # Turn off for executable-only; only needed for packaging libraries
-            set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS OFF)
+            set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS ON)
 
             list(APPEND CPACK_GENERATOR DEB)
         endif()
@@ -548,7 +533,7 @@ suggests, it makes use of the object-oriented features of Fortran 2003.")
             # message(STATUS "rpmbuild found at ${RPMBUILD_EXECUTABLE}; needs configuration")
 
             # Needs additional work (maybe?)
-            set(CPACK_RPM_PACKAGE_LICENSE "BSD-3")
+            set(CPACK_RPM_PACKAGE_LICENSE "LGPL3")
             set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
             list(APPEND CPACK_GENERATOR RPM)
         endif()
