@@ -16,20 +16,15 @@ set(CPACK_PACKAGE_CONTACT "Bob Apthorpe <bob.apthorpe@gmail.com>")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/apthorpe/zofu")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
-# RAA: What is this? Base installation directory for NSIS installer?
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}")
-#? set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}")
-# set(CPACK_SET_DESTDIR true)
-# set(CPACK_INSTALL_PREFIX /opt/${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION})
-string(TIMESTAMP BUILD_TIMESTAMP UTC)
 
-# Show your work...
+# Save compilation commands to compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Set project name and language
 project(zofu
-        LANGUAGES Fortran
-        VERSION "${CPACK_PACKAGE_VERSION}")
+    LANGUAGES Fortran
+    VERSION "${CPACK_PACKAGE_VERSION}")
 
 ###############################################################################
 ## Options ####################################################################
@@ -51,10 +46,6 @@ include(CMakeParseArguments)
 # Set default installation paths; should be invoked after setting project
 # language(s)
 include(GNUInstallDirs)
-
-# Allow external projects to be imported
-# (Needed for unit testing framework and logging module)
-include(ExternalProject)
 
 # CTest setup
 # Needed for valgrind (usually only enable_testing() is needed)
@@ -216,7 +207,7 @@ set_tests_properties(${TEST_NAME}
     ENVIRONMENT ZOFU_TEST_DATA_PATH=${TEST_SRC_BASE}/data/
 )
 
-# test_mpi - needs MPI compilation options
+# test_mpi - needs MPI compilation options and .mod files
 
 if(MPI_Fortran_FOUND)
     # test_mpi
@@ -346,7 +337,8 @@ else()
         list(APPEND CPACK_GENERATOR DragNDrop)
     else()
         # Set up DEB
-        # TODO: Find a more robust means of detecting whether debian packaging should be enabled
+        # TODO: Find a more robust means of detecting whether debian packaging
+        # should be enabled
         # Note that readelf is not strictly necessary but platform is assumed
         # Debian-ish if it's present
         find_program(READELF_EXECUTABLE readelf)
@@ -370,11 +362,10 @@ suggests, it makes use of the object-oriented features of Fortran 2003.")
         endif()
 
         # Set up RPM
-        # TODO: Find a more robust means of detecting whether RPM generator is available
+        # TODO: Find a more robust means of detecting whether RPM
+        # generator is available
         find_program(RPMBUILD_EXECUTABLE rpmbuild)
         if(RPMBUILD_EXECUTABLE)
-            # message(STATUS "rpmbuild found at ${RPMBUILD_EXECUTABLE}; needs configuration")
-
             # Needs additional work (maybe?)
             set(CPACK_RPM_PACKAGE_LICENSE "LGPL3")
             set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
