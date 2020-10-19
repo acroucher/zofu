@@ -1,0 +1,26 @@
+###############################################################################
+## Dependencies and CMake Modules  ############################################
+###############################################################################
+
+find_package(ZOFU)
+if(ZOFU_FOUND)
+    include(ZOFUhelper)
+endif()
+
+###############################################################################
+## Testing ####################################################################
+###############################################################################
+
+if(ZOFU_FOUND)
+    set(TEST_SOURCES
+        "${TEST_SRC_BASE}/zofu_demo/check.F90"
+        "${TEST_SRC_BASE}/zofu_demo/test_real_asserts.F90"
+    )
+    add_zofu_unit_test(
+        TARGET ut_c1_zofudemo
+        SOURCES "${TEST_SOURCES}"
+        DEPENDENCIES pretest_setup
+        WILL_FAIL
+        RUN_DIRECTORY ${SOFIRE2_1C_TEST_DIR}
+    )
+endif()
