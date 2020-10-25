@@ -55,71 +55,12 @@ if includedir != ''
     zofu_objs += [m + '.o']
   endforeach
 
-  # Failed experiment #1
-
-  # # Construct library build directory name from 'libzofu' + lib_extension + '.p'
-  # # or library_file_name + '.p'
-  # # Q: How do you get the (full name of/path to) .mod files for a library?
-  # # Probably fails at Meson-build time; guessing that zofu.extract_all_objects()
-  # # is probably expanded later in ninja. Artifacts not known at Meson-build time
-  # libzofu_objs = [zofu.extract_all_objects()]
-  # zofu_mods = []
-  # foreach m: libzofu_objs
-  #   message(m)
-  #   # if m.name().endswith('.mod')
-  #   #   message('Found mod file ' + m)
-  #   #   zofu_mods += [m]
-  #   # endif
-  # endforeach
-
-  # Failed experiment #2
-
-  # # This probably fails because none of these directories exist at
-  # # Meson-build time; it's created later by ninja
-  # fs = import('fs')
-  # # Start by checking for build directory for .dll
-  # mod_path = join_paths('build', 'libzofu.dll.p')
-  # if fs.is_dir(mod_path)
-  #   # Do nothing: mod_path is set correctly for .dll
-  # else
-  #   mod_path = join_paths('build', 'libzofu.a.p')
-  #   if fs.is_dir(mod_path)
-  #     # Do nothing: mod_path is set correctly for .a
-  #   else
-  #     mod_path = join_paths('build', 'libzofu.so.p')
-  #     if fs.is_dir(mod_path)
-  #       # Do nothing: mod_path is set correctly for .so
-  #     else
-  #       # Check location used in older versions of meson
-  #       mod_path = join_paths('build', 'zofu@sha')
-  #     endif
-  #   endif
-  # endif
-  # message('Checking for .mod files in ' + mod_path)
-
-  # Failed experiment #2.1
-
-  # # This probably fails because zofu.mod doesn't exist at 
-  # # Meson-build time; it's created later by ninja
-  # zofu_mod_path = join_paths(mod_path, 'zofu.mod')
-  # if fs.is_file(zofu_mod_path)
-  #   message('Successfully detected ' + zofu_mod_path)
-  # endif
-
-  # Brittle but successful experiment #3
-
-  # This might be made more robust if the zofu library build
-  # directory name could be predicted at Meson-build time
-
-  # Uncomment one of these:
-  # mod_path = join_paths('build', 'libzofu.dll.p')
-  # mod_path = join_paths('build', 'libzofu.a.p')
-  # mod_path = join_paths('build', 'libzofu.so.p')
-  mod_path = join_paths('build', 'zofu@sha')
-
-  # NB this is a temporary measure until Meson gets specific
-  # functionality for installing Fortran modules:
-  # install_subdir(join_paths('build', 'zofu@sha'),
+  if meson.version() < '0.55'
+    mod_dir = 'zofu@sha'
+  else
+    mod_dir = zofu.full_path().split('/').get(-1) + '.p'
+  endif
+  mod_path = join_paths('build', mod_dir)
   install_subdir(mod_path,
                  install_dir: module_install_dir,
                  strip_directory: true,
