@@ -62,7 +62,7 @@ if includedir != ''
   else
     mod_dir = zofu.full_path().split('/').get(-1) + '.p'
   endif
-  mod_path = join_paths('build', mod_dir)
+  mod_path = join_paths(meson.current_build_dir(), mod_dir)
   install_subdir(mod_path,
                  install_dir: module_install_dir,
                  strip_directory: true,
