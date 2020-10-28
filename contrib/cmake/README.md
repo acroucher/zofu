@@ -185,7 +185,7 @@ git clone https://github.com/acroucher/zofu.git
 cd zofu
 mkdir build
 cd build
-cmake.exe ..
+cmake ..
 make
 make test
 make package
