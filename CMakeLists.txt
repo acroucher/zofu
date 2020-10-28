@@ -162,7 +162,12 @@ else()
     target_compile_options(ZOFUDRIVER PUBLIC ${FCOPTS})
 endif()
 
-install(TARGETS ZOFUDRIVER ${ZOFU_LIB_NAME})
+install(
+    TARGETS ZOFUDRIVER ${ZOFU_LIB_NAME}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
 
 ###############################################################################
 ## Testing ####################################################################
