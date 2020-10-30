@@ -36,6 +36,28 @@ option(ENABLE_MPI "Enable MPI" OFF)
 # Set additional search path for FORD
 set(FORD_PATH "" CACHE PATH "Directory path of FORD documentation tool")
 
+# Set relative path to executables under installation root directory
+# Default is ""; if not set, defaults to CMAKE_INSTALL_BINDIR for the
+# platform. See https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
+set(ZOFU_BINARY_INSTALL_DIR ""
+    CACHE PATH "Relative path to Zofu executables for installation")
+
+# Set relative path to libraries under installation root directory
+# Default is ""; if not set, defaults to CMAKE_INSTALL_LIBDIR for the
+# platform. See https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
+set(ZOFU_LIBRARY_INSTALL_DIR ""
+    CACHE PATH "Relative path to Zofu libraries for installation")
+
+# Set relative path to Fortran `.mod` files under installation root directory
+# Default is "finstall/zofu"
+set(ZOFU_FORTRAN_MODULE_INSTALL_DIR "finstall/zofu"
+    CACHE PATH "Relative path to Zofu Fortran `.mod` files for installation")
+
+# Set relative path to HTML documentation under installation root directory
+# Default is "doc/html"
+set(ZOFU_DOCUMENTATION_INSTALL_DIR "doc/html"
+    CACHE PATH "Relative path to Zofu documentation for installation")
+
 ###############################################################################
 ## Dependencies and CMake Modules  ############################################
 ###############################################################################
@@ -46,6 +68,12 @@ include(CMakeParseArguments)
 # Set default installation paths; should be invoked after setting project
 # language(s)
 include(GNUInstallDirs)
+if(NOT ZOFU_BINARY_INSTALL_DIR)
+    set(ZOFU_BINARY_INSTALL_DIR "${CMAKE_INSTALL_BINDIR}")
+endif()
+if(NOT ZOFU_LIBRARY_INSTALL_DIR)
+    set(ZOFU_LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}")
+endif()
 
 # CTest setup
 # Needed for valgrind (usually only enable_testing() is needed)
@@ -135,7 +163,8 @@ else()
     target_compile_options(${ZOFU_LIB_NAME} PUBLIC ${FCOPTS})
 endif()
 
-install(DIRECTORY "${ZOFU_FORTRAN_MODULE_DIR}/" DESTINATION finclude/zofu)
+install(DIRECTORY "${ZOFU_FORTRAN_MODULE_DIR}/"
+    DESTINATION "${ZOFU_FORTRAN_MODULE_INSTALL_DIR}")
 
 ### Zofu-driver executable
 
@@ -164,9 +193,9 @@ endif()
 
 install(
     TARGETS ZOFUDRIVER ${ZOFU_LIB_NAME}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${ZOFU_BINARY_INSTALL_DIR}
+    LIBRARY DESTINATION ${ZOFU_LIBRARY_INSTALL_DIR}
+    ARCHIVE DESTINATION ${ZOFU_LIBRARY_INSTALL_DIR}
 )
 
 ###############################################################################
@@ -254,7 +283,8 @@ if(FORD_FOUND)
     )
     # Installs contents of ./build/doc under installer path ./doc/html (note
     # trailing slash in source directory)
-    install(DIRECTORY "${FORD_BUILD_DIRECTORY}/" DESTINATION doc/html)
+    install(DIRECTORY "${FORD_BUILD_DIRECTORY}/"
+        DESTINATION "${ZOFU_DOCUMENTATION_INSTALL_DIR}")
 endif()
 
 ###############################################################################
