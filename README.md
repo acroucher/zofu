@@ -139,7 +139,7 @@ At the end of the test two further dictionaries are output, "cases" and "asserti
 
 # Running multiple tests
 
-If a number of modules are to be tested, `zofu-driver` can build a separate driver program for each module. The tests can be run using a utility such as [meson test](https://mesonbuild.com/Unit-tests.html), which will run all the test driver programs and produce summary output for the whole suite of tests.
+If a number of modules are to be tested, `zofu-driver` can build a separate driver program for each module. The tests can be run using a utility such as [meson test](https://mesonbuild.com/Unit-tests.html) or [CTest](https://gitlab.kitware.com/cmake/community/-/wikis/doc/ctest/Testing-With-CTest), which will run all the test driver programs and produce summary output for the whole suite of tests.
 
 Some unit testing systems create a single driver program which runs all tests in multiple modules. While this is perhaps simpler, it has the disadvantage that if one test crashes, the entire suite of tests stops and no other tests can be run. By contrast, if there is a separate driver program for each test module, the suite of tests can continue to run in the event of one module crashing. This approach also allows individual modules to be tested without recompiling the test driver program.
 
@@ -175,7 +175,13 @@ This works because `unit_test_mpi_type` extends `unit_test_type`, so is still of
 
 The setup and teardown routines in each test module should include commands for initializing and finalizing MPI, e.g. `mpi_init()` in the `setup()` routine, and `mpi_finalize()` in the `teardown()` routine.
 
-# Building Zofu
+# Building and installing Zofu
+
+Zofu includes scripts for building and installing using either [Meson](https://mesonbuild.com/) or [CMake](https://cmake.org/).
+
+## Using Meson
+
+### Building with Meson
 
 A script (`meson.build`) is included for building Zofu using the [Meson](https://mesonbuild.com/) build system. This in turn uses the [Ninja](https://ninja-build.org/) tool to run the build. Meson and Ninja can be installed using your package manager or via [pip](https://packaging.python.org/tutorials/installing-packages/). Zofu can be configured by running:
 
@@ -183,7 +189,7 @@ A script (`meson.build`) is included for building Zofu using the [Meson](https:/
 meson build
 ```
 
-This will create and configure a build subdirectory called `build`. By default, a debug build is performed. If you want an optimized release build, you can specify the build type at configuration time, e.g.:
+in the Zofu root directory. This will create and configure a build subdirectory called `build` (you can substitute a different name if you prefer). By default, a debug build is performed. If you want an optimized release build, you can specify the build type at configuration time, e.g.:
 
 ```
 meson build --buildtype=release
@@ -205,7 +211,7 @@ FC=ftn meson build -Dmpi_wrapper_compiler=true
 
 will configure the Zofu build to use an MPI wrapper compiler called `ftn`.
 
-# Installing Zofu
+### Installing with Meson
 
 Zofu can be installed as follows:
 
@@ -229,12 +235,98 @@ meson build --prefix=/home/bob/ --libdir=lib --includedir=finclude/zofu
 
 Meson will also write a [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) file to make it easier for other software (e.g. your test driver programs) to link to Zofu. The pkg-config file is installed to the `pkgconfig` subdirectory under the directory where the Zofu library is installed.
 
+## Using CMake
+
+### Building with CMake
+
+A script (`CMakeLists.txt`) is included for building Zofu using [CMake](https://cmake.org/). CMake can be installed using your package manager. CMake will by default use the `make` tool to run the build, but can also use Ninja instead if you configure it to do so.
+
+The Zofu CMake build can be configured by running:
+
+```
+mkdir build
+cd build
+cmake ..
+```
+
+in the Zofu root directory. Zofu can then be built by executing `make` in the build directory.
+
+### Installing with CMake
+
+Zofu can be installed by executing:
+
+```
+make package
+make install
+```
+in the build directory.
+
+### Customizing a CMake build
+
+To specify a release type (`Release` or `Debug` for example), 
+pass `-D CMAKE_BUILD_TYPE=Debug` or `-D CMAKE_BUILD_TYPE=Release`
+to `cmake`. If not specified, `Release` is assumed.
+
+The installation path for can be specified for each component of Zofu - the
+`zofu-driver` executable, the library, Fortran `/.mod` files, and HTML
+documentation. The following parameters are optional:
+
+* `ZOFU_BINARY_INSTALL_DIR` sets the relative path to `zofu-driver` 
+  under the root install directory. If not specified, it typically
+  defaults to `./bin`.
+* `ZOFU_LIBRARY_INSTALL_DIR` sets the relative path to the library
+  (`.a`, `.dll`, `.dylib`). If not specified, it typically defaults to
+  `./lib`; see https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
+  for details.
+* `ZOFU_FORTRAN_MODULE_INSTALL_DIR` sets the relative path to the Fortran
+`.mod` files; the default is `./finstall/zofu`
+* `ZOFU_DOCUMENTATION_INSTALL_DIR` sets the relative path to the HTML
+documentation generated by FORD; the default is `./doc/html`
+
+These variables are passed to CMake using the `-D` option. For example:
+
+~~~sh
+cd build
+cmake -D CMAKE_BUILD_TYPE=Debug \
+    -D ZOFU_BINARY_INSTALL_DIR:PATH=debug/bin  \
+    -D ZOFU_LIBRARY_INSTALL_DIR:PATH=debug/lib \
+    -D ZOFU_FORTRAN_MODULE_INSTALL_DIR:PATH=debug/finclude \
+    -D ZOFU_DOCUMENTATION_INSTALL_DIR:PATH=debug/html \
+    ..
+make
+make test
+make package
+~~~
+
+Similarly for Windows:
+
+~~~bat
+cd build
+cmake.exe -G Ninja -D CMAKE_BUILD_TYPE=Debug ^
+    -D ZOFU_BINARY_INSTALL_DIR:PATH=debug/bin  ^
+    -D ZOFU_LIBRARY_INSTALL_DIR:PATH=debug/lib ^
+    -D ZOFU_FORTRAN_MODULE_INSTALL_DIR:PATH=debug/finclude ^
+    -D ZOFU_DOCUMENTATION_INSTALL_DIR:PATH=debug/html ^
+    ..
+ninja
+ninja test
+ninja package
+~~~
+
+More information can be found in `contrib/cmake/README.md`
+
 # Testing Zofu
 
-Zofu has its own unit tests. These can be run from a command line in the `build` directory using the command:
+Zofu has its own unit tests. If you are using Meson, these can be run from a command line in the `build` directory using the command:
 
 ```
 meson test
+```
+
+If you are using CMake with `make`, the tests can be run using the command:
+
+```
+make test
 ```
 
 # Running tests with Meson

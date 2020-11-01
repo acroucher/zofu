@@ -54,12 +54,20 @@ if includedir != ''
   foreach m: zofu_modules
     zofu_objs += [m + '.o']
   endforeach
+
   # NB this is a temporary measure until Meson gets specific
   # functionality for installing Fortran modules:
-  install_subdir(join_paths('build', 'zofu@sha'),
+  if meson.version() < '0.55'
+    mod_dir = 'zofu@sha'
+  else
+    mod_dir = zofu.full_path().split('/').get(-1) + '.p'
+  endif
+  mod_path = join_paths(meson.current_build_dir(), mod_dir)
+  install_subdir(mod_path,
                  install_dir: module_install_dir,
                  strip_directory: true,
                  exclude_files: zofu_objs)
+
   pkg = import('pkgconfig')
   pkg.generate(zofu,
                description: 'Zofu is Object-oriented Fortran Unit-testing')
