@@ -80,7 +80,6 @@ endif()
 # CTest setup
 # Needed for valgrind (usually only enable_testing() is needed)
 include(CTest)
-enable_testing()
 
 # Query MPI support
 if(ENABLE_MPI)
