@@ -33,6 +33,8 @@ project(zofu
 # Enable MPI support; disabled by default
 option(ENABLE_MPI "Enable MPI" OFF)
 
+option(BUILD_DOCS "build Zofu documentation" OFF)
+
 # Set additional search path for FORD
 set(FORD_PATH "" CACHE PATH "Directory path of FORD documentation tool")
 
@@ -89,7 +91,9 @@ endif()
 include(ZofuAcceptanceHelper)
 
 # Fortran Documenter
-find_package(FORD)
+if(BUILD_DOCS)
+    find_package(FORD)
+endif()
 
 ###############################################################################
 ## Build ######################################################################
