@@ -202,6 +202,7 @@ install(
 ## Testing ####################################################################
 ###############################################################################
 
+if(BUILD_TESTING)
 # Directory containing unit test source files
 set(TEST_SRC_BASE "${CMAKE_CURRENT_SOURCE_DIR}/test")
 
@@ -261,6 +262,8 @@ if(MPI_Fortran_FOUND)
     )
     target_compile_options(${TEST_NAME} PUBLIC ${MPI_Fortran_COMPILE_OPTIONS})
 endif()
+
+endif(BUILD_TESTING)
 
 ###############################################################################
 ## Documentation ##############################################################
