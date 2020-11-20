@@ -1,6 +1,6 @@
 # Zofu Meson build script
 
-project('zofu', ['fortran'], version: '1.1.0')
+project('zofu', ['fortran'], version: '1.1.1')
 
 if meson.get_compiler('fortran').get_id() == 'gcc'
   f_args = ['-Wno-maybe-uninitialized']
