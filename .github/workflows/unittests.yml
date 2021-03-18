@@ -19,7 +19,7 @@ jobs:
     - name: Install build tools
       run: |
         sudo apt-get install ninja-build
-        pip install --user meson
+        pip install --user meson==0.57.0
     - name: Update path
       run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
     - name: Show versions
